@@ -47,6 +47,7 @@ public:
      * Send uniform variables to shader
      */
     void uniform(GLuint const uniformHandle, float const uniform);
+    void uniform(GLuint const uniformHandle, double const uniform);
     void uniform(GLuint const uniformHandle, int const uniform);
     void uniform(GLuint const uniformHandle, glm::mat4 const & uniform);
     void uniform(GLuint const uniformHandle, STransformation3 const & uniform);
