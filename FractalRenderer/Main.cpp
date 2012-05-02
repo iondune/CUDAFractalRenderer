@@ -30,15 +30,16 @@ public:
 	static GLuint QuadHandle;
 
 	CMainState()
+		: sX(1.0), sY(1.0), cX(0.0), cY(0.7)
 	{}
 
 	void begin()
 	{
 		SDL_WM_SetCaption("Fractal Renderer!", "");
 
-        glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
+		glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
 		glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LEQUAL);
+		glDepthFunc(GL_LEQUAL);
 
 		if (! QuadHandle)
 		{
@@ -62,7 +63,7 @@ public:
 	{
 
 	public:
-		
+
 		SPostProcessPass();
 
 		CShader * Shader;
@@ -83,40 +84,82 @@ public:
 
 	};
 
+	double sX, sY;
+	double cX, cY;
+
 	void OnRenderStart(float const Elapsed)
 	{
 		SPostProcessPass Pass;
 		Pass.Shader = Shader;
+		Pass.Doubles["cX"] = cX;
+		Pass.Doubles["cY"] = cY;
+		Pass.Doubles["sX"] = sX;
+		Pass.Doubles["sY"] = sY;
 		Pass.doPass();
 
-        SDL_GL_SwapBuffers();
+		SDL_GL_SwapBuffers();
 	}
 
-	
-    void OnKeyboardEvent(SKeyboardEvent const & Event)
-    {
-        switch (Event.Key)
-        {
 
+	void OnKeyboardEvent(SKeyboardEvent const & Event)
+	{
+		if (! Event.Pressed)
+		{
+			static double const MoveSpeed = 0.07;
+			switch (Event.Key)
+			{
 
-        }
-    }
+			case SDLK_w:
 
-    void OnMouseEvent(SMouseEvent const & Event)
-    {
-        switch (Event.Type.Value)
-        {
+				cY += sY * MoveSpeed;
+				break;
 
-        case SMouseEvent::EType::Click:
+			case SDLK_a:
 
-            break;
+				cX -= sX * MoveSpeed;
+				break;
 
-        case SMouseEvent::EType::Move:
+			case SDLK_s:
+
+				cY -= sY * MoveSpeed;
+				break;
+
+			case SDLK_d:
+
+				cX += sX * MoveSpeed;
+				break;
+
+			case SDLK_z:
+
+				sX *= 0.5;
+				sY *= 0.5;
+				break;
+
+			case SDLK_x:
+
+				sX *= 2.0;
+				sY *= 2.0;
+				break;
+
+			}
+		}
+	}
+
+	void OnMouseEvent(SMouseEvent const & Event)
+	{
+		switch (Event.Type.Value)
+		{
+
+		case SMouseEvent::EType::Click:
 
 			break;
 
-        }
-    }
+		case SMouseEvent::EType::Move:
+
+			break;
+
+		}
+	}
 
 };
 

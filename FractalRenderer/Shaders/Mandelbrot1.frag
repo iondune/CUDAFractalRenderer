@@ -13,17 +13,11 @@ void main()
     int iteration = 0;
     int max_iteration = 1000;
     
-    double cX = -0.017343721971153;
-    double cY = 0.796967633298876;
-    
-    double sX = 0.015;
-    double sY = 0.015;
-    
-    double x0 = vTexCoord.x; // (real) width;
-    double y0 = vTexCoord.y; // (real) height;
-    
-    //x0 -= 0.5;
-    //y0 -= 0.5;
+    double x0 = vTexCoord.x;
+    double y0 = vTexCoord.y;
+
+    x0 -= 0.5;
+    y0 -= 0.5;
     
     x0 *= sX;
     y0 *= sY;
