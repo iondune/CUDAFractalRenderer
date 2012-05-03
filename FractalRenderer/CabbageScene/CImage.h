@@ -3,13 +3,7 @@
 
 #include <string>
 
-#ifdef __unix__
-#include<GL/gl.h>
-#endif
-
-#ifdef _WIN32
-#include <GL\glew.h>
-#endif
+#include <GL/glew.h>
 
 #include "../CabbageCore/SVector2.h"
 

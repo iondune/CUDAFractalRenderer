@@ -3,9 +3,9 @@
 #include <CabbageFramework.h>
 
 #ifdef __unix__
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <SDL/SDL.h>
+//#include <GL/gl.h>
+//#include <GL/glu.h>
+
 #endif
 
 #ifdef _WIN32
@@ -16,9 +16,11 @@
 #pragma comment(lib, "glu32.lib")
 #pragma comment(lib, "freetype.lib")
 
-#include <GL/glew.h>
 #include <SDL/SDL.h>
 #endif
+
+#include <GL/glew.h>
+#include <SDL/SDL.h>
 
 class CMainState : public CState<CMainState>
 {

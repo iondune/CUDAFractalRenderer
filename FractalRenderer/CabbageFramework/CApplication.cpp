@@ -48,7 +48,6 @@ void CApplication::setupRenderContext()
         exit(1);
     }
 
-#ifdef _WIN32
     GLenum err = glewInit();
     if (GLEW_OK != err)
     {
@@ -56,7 +55,6 @@ void CApplication::setupRenderContext()
         waitForUser();
         exit(3);
     }
-#endif
 
     double const VersionNumber = std::atof((char const *)glGetString(GL_VERSION));
     if (VersionNumber < 2.0)

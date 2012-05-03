@@ -1,4 +1,4 @@
-#version 150
+#version 400
 
 varying vec2 vTexCoord;
 
