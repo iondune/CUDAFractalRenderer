@@ -32,7 +32,7 @@ public:
 	static GLuint QuadHandle;
 
 	CMainState()
-		: sX(1.0), sY(1.0), cX(0.0), cY(0.7)
+		: sX(1.0), sY(1.0), cX(0.0), cY(0.7), max_iteration(1000)
 	{}
 
 	void begin()
@@ -88,6 +88,7 @@ public:
 
 	double sX, sY;
 	double cX, cY;
+	int max_iteration;
 
 	void OnRenderStart(float const Elapsed)
 	{
@@ -97,6 +98,7 @@ public:
 		Pass.Doubles["cY"] = cY;
 		Pass.Doubles["sX"] = sX;
 		Pass.Doubles["sY"] = sY;
+		Pass.Ints["max_iteration"] = max_iteration;
 		Pass.doPass();
 
 		SDL_GL_SwapBuffers();
@@ -142,7 +144,26 @@ public:
 				sX *= 2.0;
 				sY *= 2.0;
 				break;
+				
+			case SDLK_g:
+				
+				if (max_iteration)
+					max_iteration *= 2;
+				else
+					++ max_iteration;
+				
+				printf("iteration cap: %d\n", max_iteration);
+				
+				break;
 
+			case SDLK_b:
+				
+				max_iteration /= 2;
+				
+				printf("iteration cap: %d\n", max_iteration);
+				
+				break;
+				
 			}
 		}
 	}

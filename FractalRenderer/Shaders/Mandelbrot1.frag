@@ -8,10 +8,11 @@ uniform double cY;
 uniform double sX;
 uniform double sY;
 
+uniform int max_iteration;
+
 void main()
 {
     int iteration = 0;
-    int max_iteration = 1000;
     
     double x0 = vTexCoord.x;
     double y0 = vTexCoord.y;
