@@ -26,6 +26,7 @@ class CMainState : public CState<CMainState>
 {
 
 	CShader * Shader;
+	CTexture * ColorMap;
 
 public:
 
@@ -59,6 +60,10 @@ public:
 		}
 
 		Shader = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1.frag");
+		CImage * ColorImage = CTextureLoader::loadImage("Spectrum1.bmp");
+		STextureCreationFlags Flags;
+		Flags.MipMaps = false;
+		ColorMap = new CTexture(ColorImage, Flags);
 	}
 
 	class SPostProcessPass
@@ -99,6 +104,7 @@ public:
 		Pass.Doubles["sX"] = sX;
 		Pass.Doubles["sY"] = sY;
 		Pass.Ints["max_iteration"] = max_iteration;
+		Pass.Textures["uColorMap"] = ColorMap;
 		Pass.doPass();
 
 		SDL_GL_SwapBuffers();

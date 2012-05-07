@@ -1,6 +1,7 @@
 #version 400
 
 varying vec2 vTexCoord;
+uniform sampler2D uColorMap;
 
 uniform double cX;
 uniform double cY;
@@ -37,60 +38,7 @@ void main()
         ++ iteration;
     }
     
-    int fifth = max_iteration / 7;
-    float seventh = max_iteration / 7.0;
-    float r = 0, g = 0, b = 0;
-    switch (iteration / fifth)
-    {
-    default:
-    case 0:
-        
-        r = iteration / seventh;
-        break;
-        
-    case 1:
-        
-        r =  1.0;
-        g = (iteration % fifth) / seventh;
-        break;
-        
-    case 2:
-        
-        r = 1.0 - (iteration % fifth) / seventh;
-        g = 1.0;
-        break;
-        
-    case 3:
-        
-        g = 1.0;
-        b = (iteration % fifth) / seventh;
-        break;
-        
-    case 4:
-        
-        g = 1.0 - (iteration % fifth) / seventh;
-        b = 1.0;
-        break;
-        
-    case 5:
-        
-        b = 1.0;
-        r = (iteration % fifth) / seventh;
-        break;
-        
-    case 6:
-        
-        b = 1.0 - (iteration % fifth) / seventh;
-        r = 1.0 - (iteration % fifth) / seventh;
-        
-    case 7:
-        
-        r = g = 
-        b = 0.0;
-        break;
-        
-    }
-    vec4 Color = vec4(r, g, b, 1.0);
+    vec4 Color = texture2D(uColorMap, vec2(float(iteration) / float(max_iteration), 0));
     
-    gl_FragColor = Color;
+    gl_FragColor = iteration == max_iteration ? vec4(0,0,0,1) : Color;
 }
