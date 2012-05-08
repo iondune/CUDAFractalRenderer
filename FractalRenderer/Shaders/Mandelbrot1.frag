@@ -15,12 +15,12 @@ uniform vec3 uSetColor;
 
 uniform int max_iteration;
 
-void main()
+vec4 getFractalColor(vec2 pos)
 {
     int iteration = 0;
     
-    double x0 = vTexCoord.x;
-    double y0 = vTexCoord.y;
+    double x0 = pos.x;
+    double y0 = pos.y;
 
     x0 -= 0.5;
     y0 -= 0.5;
@@ -44,5 +44,10 @@ void main()
     
     vec4 Color = texture2D(uColorMap, vec2(float(iteration + 1) / float(max_iteration), 0));
     
-    gl_FragColor = iteration == max_iteration ? vec4(uSetColor, 1.0) : Color;
+    return iteration == max_iteration ? vec4(uSetColor, 1.0) : Color;
+}
+
+void main()
+{
+    gl_FragColor = getFractalColor(vTexCoord);
 }
