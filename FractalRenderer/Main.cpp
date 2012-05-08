@@ -25,7 +25,7 @@
 class CMainState : public CState<CMainState>
 {
 
-	CShader * Shader;
+	CShader * Shader, * ShaderMS2, * ShaderMS3;
 	CTexture * ColorMap;
 	SVector3 uSetColor;
 
@@ -34,7 +34,7 @@ public:
 	static GLuint QuadHandle;
 
 	CMainState()
-		: sX(1.0), sY(1.0), cX(0.0), cY(0.7), max_iteration(1000), uSetColor(0.0f)
+		: sX(1.0), sY(1.0), cX(0.0), cY(0.7), max_iteration(1000), uSetColor(0.0f), Multisample(false)
 	{}
 
 	void begin()
@@ -61,7 +61,11 @@ public:
 		}
 
 		Shader = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1.frag");
+		ShaderMS2 = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-2x2MS.frag");
+		ShaderMS3 = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-3x3MS.frag");
+
 		CImage * ColorImage = CTextureLoader::loadImage("Spectrum1.bmp");
+
 		STextureCreationFlags Flags;
 		Flags.MipMaps = false;
 		ColorMap = new CTexture(ColorImage, Flags);
@@ -97,10 +101,28 @@ public:
 	double cX, cY;
 	int max_iteration;
 
+	int Multisample;
+
 	void OnRenderStart(float const Elapsed)
 	{
 		SPostProcessPass Pass;
-		Pass.Shader = Shader;
+
+		switch (Multisample)
+		{
+		case 0:
+			Pass.Shader = Shader;
+			break;
+
+		case 1:
+			Pass.Shader = ShaderMS2;
+			break;
+
+		case 2:
+			Pass.Shader = ShaderMS3;
+			break;
+		}
+
+
 		Pass.Doubles["cX"] = cX;
 		Pass.Doubles["cY"] = cY;
 		Pass.Doubles["sX"] = sX;
@@ -108,6 +130,13 @@ public:
 		Pass.Ints["max_iteration"] = max_iteration;
 		Pass.Textures["uColorMap"] = ColorMap;
 		Pass.Vector3s["uSetColor"] = uSetColor;
+
+		if (Multisample)
+		{
+			Pass.Ints["uScreenWidth"] = Application.getWindowSize().X;
+			Pass.Ints["uScreenHeight"] = Application.getWindowSize().Y;
+		}
+
 		Pass.doPass();
 
 		SDL_GL_SwapBuffers();
@@ -140,6 +169,14 @@ public:
 			case SDLK_d:
 
 				cX += sX * MoveSpeed;
+				break;
+
+			case SDLK_m:
+
+				++ Multisample;
+				if (Multisample > 2)
+					Multisample = 0;
+				std::cout << "Multisample: " << Multisample << std::endl;
 				break;
 
 			case SDLK_z:
