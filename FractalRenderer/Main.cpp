@@ -25,7 +25,7 @@
 class CMainState : public CState<CMainState>
 {
 
-	CShader * Shader, * ShaderMS2, * ShaderMS3;
+	CShader * Shader, * ShaderMS2, * ShaderMS3, * ShaderStoch;
 	CTexture * ColorMap;
 	SVector3 uSetColor;
 
@@ -63,6 +63,7 @@ public:
 		Shader = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1.frag");
 		ShaderMS2 = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-2x2MS.frag");
 		ShaderMS3 = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-3x3MS.frag");
+		ShaderStoch = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-Stoch.frag");
 
 		CImage * ColorImage = CTextureLoader::loadImage("Spectrum1.bmp");
 
@@ -120,6 +121,10 @@ public:
 		case 2:
 			Pass.Shader = ShaderMS3;
 			break;
+
+		case 3:
+			Pass.Shader = ShaderStoch;
+			break;
 		}
 
 
@@ -174,8 +179,32 @@ public:
 			case SDLK_m:
 
 				++ Multisample;
-				if (Multisample > 2)
+				if (Multisample > 3)
 					Multisample = 0;
+				std::cout << "Multisample: " << Multisample << std::endl;
+				break;
+
+			case SDLK_1:
+
+				Multisample = 0;
+				std::cout << "Multisample: " << Multisample << std::endl;
+				break;
+
+			case SDLK_2:
+
+				Multisample = 1;
+				std::cout << "Multisample: " << Multisample << std::endl;
+				break;
+
+			case SDLK_3:
+
+				Multisample = 2;
+				std::cout << "Multisample: " << Multisample << std::endl;
+				break;
+
+			case SDLK_4:
+
+				Multisample = 3;
 				std::cout << "Multisample: " << Multisample << std::endl;
 				break;
 
