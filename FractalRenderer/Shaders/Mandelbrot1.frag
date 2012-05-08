@@ -42,7 +42,9 @@ vec4 getFractalColor(vec2 pos)
         ++ iteration;
     }
     
-    vec4 Color = texture2D(uColorMap, vec2(float(iteration + 1) / float(max_iteration), 0));
+    float a = float(iteration + 1) / float(max_iteration);
+    a = pow(a, 0.333);
+    vec4 Color = texture2D(uColorMap, vec2(a, 0));
     
     return iteration == max_iteration ? vec4(uSetColor, 1.0) : Color;
 }
