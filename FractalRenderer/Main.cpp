@@ -27,13 +27,14 @@ class CMainState : public CState<CMainState>
 
 	CShader * Shader;
 	CTexture * ColorMap;
+	SVector3 uSetColor;
 
 public:
 
 	static GLuint QuadHandle;
 
 	CMainState()
-		: sX(1.0), sY(1.0), cX(0.0), cY(0.7), max_iteration(1000)
+		: sX(1.0), sY(1.0), cX(0.0), cY(0.7), max_iteration(1000), uSetColor(0.0f)
 	{}
 
 	void begin()
@@ -78,6 +79,7 @@ public:
 		std::map<std::string, float> Floats;
 		std::map<std::string, double> Doubles;
 		std::map<std::string, int> Ints;
+		std::map<std::string, SVector3> Vector3s;
 		std::map<std::string, CTexture *> Textures;
 
 		void doPass();
@@ -105,6 +107,7 @@ public:
 		Pass.Doubles["sY"] = sY;
 		Pass.Ints["max_iteration"] = max_iteration;
 		Pass.Textures["uColorMap"] = ColorMap;
+		Pass.Vector3s["uSetColor"] = uSetColor;
 		Pass.doPass();
 
 		SDL_GL_SwapBuffers();
@@ -227,6 +230,9 @@ void CMainState::SPostProcessPass::end()
 		Context->uniform(it->first, it->second);
 
 	for (std::map<std::string, int>::iterator it = Ints.begin(); it != Ints.end(); ++ it)
+		Context->uniform(it->first, it->second);
+
+	for (std::map<std::string, SVector3>::iterator it = Vector3s.begin(); it != Vector3s.end(); ++ it)
 		Context->uniform(it->first, it->second);
 
 	Context->bindBufferObject("aPosition", QuadHandle, 2);

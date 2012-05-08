@@ -1,6 +1,8 @@
 #version 400
 
 varying vec2 vTexCoord;
+
+
 uniform sampler2D uColorMap;
 
 uniform double cX;
@@ -8,6 +10,8 @@ uniform double cY;
 
 uniform double sX;
 uniform double sY;
+
+uniform vec3 uSetColor;
 
 uniform int max_iteration;
 
@@ -38,7 +42,7 @@ void main()
         ++ iteration;
     }
     
-    vec4 Color = texture2D(uColorMap, vec2(float(iteration) / float(max_iteration), 0));
+    vec4 Color = texture2D(uColorMap, vec2(float(iteration + 1) / float(max_iteration), 0));
     
-    gl_FragColor = iteration == max_iteration ? vec4(0,0,0,1) : Color;
+    gl_FragColor = iteration == max_iteration ? vec4(uSetColor, 1.0) : Color;
 }
