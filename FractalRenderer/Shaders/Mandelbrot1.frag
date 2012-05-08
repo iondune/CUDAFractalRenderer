@@ -1,6 +1,6 @@
 #version 400
 
-varying vec2 vTexCoord;
+in vec2 vTexCoord;
 
 
 uniform sampler2D uColorMap;
@@ -13,7 +13,13 @@ uniform double sY;
 
 uniform vec3 uSetColor;
 
+uniform int uScreenWidth;
+uniform int uScreenHeight;
+
 uniform int max_iteration;
+
+
+out vec4 FragColor;
 
 vec4 getFractalColor(vec2 pos)
 {
@@ -51,5 +57,5 @@ vec4 getFractalColor(vec2 pos)
 
 void main()
 {
-    gl_FragColor = getFractalColor(vTexCoord);
+    FragColor = getFractalColor(vTexCoord);
 }
