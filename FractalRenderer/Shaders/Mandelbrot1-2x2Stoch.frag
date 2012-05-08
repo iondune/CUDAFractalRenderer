@@ -18,6 +18,8 @@ uniform int uScreenHeight;
 
 uniform int max_iteration;
 
+uniform float TextureScaling;
+
 
 out vec4 FragColor;
 
@@ -49,7 +51,7 @@ vec4 getFractalColor(vec2 pos)
     }
     
     float a = float(iteration + 1) / float(max_iteration);
-    a = pow(a, 0.333);
+    a = pow(a, TextureScaling);
     vec4 Color = texture2D(uColorMap, vec2(a, 0));
     
     return iteration == max_iteration ? vec4(uSetColor, 1.0) : Color;

@@ -28,13 +28,30 @@ class CMainState : public CState<CMainState>
 	CShader * Shader, * ShaderMS2, * ShaderMS3, * ShaderStoch, * ShaderStoch2;
 	CTexture * ColorMap;
 	SVector3 uSetColor;
+	
+	float TextureScaling;
+	int ScaleFactor;
+	
+	void recalcScale()
+	{
+		if (-1 <= ScaleFactor && ScaleFactor <= 1)
+			TextureScaling = 1.f;
+		else if (ScaleFactor < -1)
+		{
+			TextureScaling = -ScaleFactor / 1.f;
+		}
+		else if (ScaleFactor > 1)
+		{
+			TextureScaling = 1.f / ScaleFactor;
+		}
+	}
 
 public:
 
 	static GLuint QuadHandle;
 
 	CMainState()
-		: sX(1.0), sY(1.0), cX(0.0), cY(0.7), max_iteration(1000), uSetColor(0.0f), Multisample(false)
+		: sX(1.0), sY(1.0), cX(0.0), cY(0.7), max_iteration(1000), uSetColor(0.0f), Multisample(false), ScaleFactor(1), TextureScaling(1.f)
 	{}
 
 	void begin()
@@ -50,8 +67,8 @@ public:
 			GLfloat QuadVertices[] = 
 			{
 				-1.0, -1.0,
-				1.0, -1.0,
-				1.0,  1.0,
+				 1.0, -1.0,
+				 1.0,  1.0,
 				-1.0,  1.0
 			};
 
@@ -137,6 +154,7 @@ public:
 		Pass.Doubles["cY"] = cY;
 		Pass.Doubles["sX"] = sX;
 		Pass.Doubles["sY"] = sY;
+		Pass.Floats["TextureScaling"] = TextureScaling;
 		Pass.Ints["max_iteration"] = max_iteration;
 		Pass.Textures["uColorMap"] = ColorMap;
 		Pass.Vector3s["uSetColor"] = uSetColor;
@@ -247,6 +265,20 @@ public:
 				max_iteration /= 2;
 				
 				printf("iteration cap: %d\n", max_iteration);
+				
+				break;
+				
+			case SDLK_h:
+				
+				ScaleFactor --;
+				recalcScale();
+				
+				break;
+				
+				case SDLK_n:
+				
+				ScaleFactor ++;
+				recalcScale();
 				
 				break;
 				
