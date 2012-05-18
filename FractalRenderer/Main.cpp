@@ -257,6 +257,18 @@ public:
 				sX *= 2.0;
 				sY *= 2.0;
 				break;
+
+			case SDLK_q:
+
+				sX *= 0.75;
+				sY *= 0.75;
+				break;
+
+			case SDLK_e:
+
+				sX *= 1.33;
+				sY *= 1.33;
+				break;
 				
 			case SDLK_g:
 				
