@@ -15,8 +15,6 @@
 #pragma comment(lib, "OpenGL32.lib")
 #pragma comment(lib, "glu32.lib")
 #pragma comment(lib, "freetype.lib")
-
-#include <SDL/SDL.h>
 #endif
 
 #include <GL/glew.h>
