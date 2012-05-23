@@ -20,10 +20,32 @@
 #include <GL/glew.h>
 #include <SDL/SDL.h>
 
+enum EFractalType
+{
+	EFT_MANDEL,
+	EFT_JULIA,
+	EFT_COUNT
+};
+
+enum EShaderSettings
+{
+	ESS_DEFAULT,
+	ESS_MS2,
+	ESS_MS3,
+	ESS_MS4,
+	ESS_STOCH,
+	ESS_STOCH2,
+	ESS_COUNT
+};
+
 class CMainState : public CState<CMainState>
 {
 
-	CShader * Shader, * ShaderMS2, * ShaderMS3, * ShaderMS4, * ShaderStoch, * ShaderStoch2;
+	CShader * Shader[EFT_COUNT][ESS_COUNT];
+
+	int CurrentFractal;
+	int CurrentSettings;
+
 	CTexture * ColorMap;
 	SVector3 uSetColor;
 	
@@ -49,7 +71,8 @@ public:
 	static GLuint QuadHandle;
 
 	CMainState()
-		: sX(1.0), sY(1.0), cX(0.0), cY(0.7), max_iteration(1000), uSetColor(0.0f), Multisample(false), ScaleFactor(1), TextureScaling(1.f)
+		: sX(1.0), sY(1.0), cX(0.0), cY(0.7), max_iteration(1000), uSetColor(0.0f), ScaleFactor(1), TextureScaling(1.f),
+		CurrentFractal(EFT_MANDEL), CurrentSettings(ESS_DEFAULT)
 	{}
 
 	void begin()
@@ -75,12 +98,20 @@ public:
 			glBufferData(GL_ARRAY_BUFFER, sizeof(QuadVertices), QuadVertices, GL_STATIC_DRAW);
 		}
 
-		Shader = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1.frag");
-		ShaderMS2 = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-2x2MS.frag");
-		ShaderMS3 = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-3x3MS.frag");
-		ShaderMS4 = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-4x4MS.frag");
-		ShaderStoch = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-Stoch.frag");
-		ShaderStoch2 = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-2x2Stoch.frag");
+		for (int i = 0; i < EFT_COUNT; ++ i)
+		{
+			for (int j = 0; j < ESS_COUNT; ++ j)
+			{
+				Shader[i][j] = 0;
+			}
+		}
+
+		Shader[EFT_MANDEL][ESS_DEFAULT] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1.frag");
+		Shader[EFT_MANDEL][ESS_MS2] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-2x2MS.frag");
+		Shader[EFT_MANDEL][ESS_MS3] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-3x3MS.frag");
+		Shader[EFT_MANDEL][ESS_MS4] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-4x4MS.frag");
+		Shader[EFT_MANDEL][ESS_STOCH] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-Stoch.frag");
+		Shader[EFT_MANDEL][ESS_STOCH2] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-2x2Stoch.frag");
 
 		CImage * ColorImage = CTextureLoader::loadImage("Spectrum1.bmp");
 
@@ -119,38 +150,10 @@ public:
 	double cX, cY;
 	int max_iteration;
 
-	int Multisample;
-
 	void OnRenderStart(float const Elapsed)
 	{
 		SPostProcessPass Pass;
-
-		switch (Multisample)
-		{
-		case 0:
-			Pass.Shader = Shader;
-			break;
-
-		case 1:
-			Pass.Shader = ShaderMS2;
-			break;
-
-		case 2:
-			Pass.Shader = ShaderMS3;
-			break;
-
-		case 3:
-			Pass.Shader = ShaderMS4;
-			break;
-
-		case 4:
-			Pass.Shader = ShaderStoch;
-			break;
-			
-		case 5:
-			Pass.Shader = ShaderStoch2;
-			break;
-		}
+		Pass.Shader = Shader[CurrentFractal][CurrentSettings];
 
 
 		Pass.Doubles["cX"] = cX;
@@ -162,7 +165,7 @@ public:
 		Pass.Textures["uColorMap"] = ColorMap;
 		Pass.Vector3s["uSetColor"] = uSetColor;
 
-		if (Multisample)
+		if (CurrentSettings != ESS_DEFAULT)
 		{
 			Pass.Ints["uScreenWidth"] = Application.getWindowSize().X;
 			Pass.Ints["uScreenHeight"] = Application.getWindowSize().Y;
@@ -204,46 +207,25 @@ public:
 
 			case SDLK_m:
 
-				++ Multisample;
-				if (Multisample > 5)
-					Multisample = 0;
-				std::cout << "Multisample: " << Multisample << std::endl;
+				++ CurrentSettings;
+				if (CurrentSettings > ESS_COUNT)
+					CurrentSettings = 0;
+				std::cout << "Multisample: " << CurrentSettings << std::endl;
 				break;
 
 			case SDLK_1:
-
-				Multisample = 0;
-				std::cout << "Multisample: " << Multisample << std::endl;
-				break;
-
 			case SDLK_2:
-
-				Multisample = 1;
-				std::cout << "Multisample: " << Multisample << std::endl;
-				break;
-
 			case SDLK_3:
-
-				Multisample = 2;
-				std::cout << "Multisample: " << Multisample << std::endl;
-				break;
-
 			case SDLK_4:
-
-				Multisample = 3;
-				std::cout << "Multisample: " << Multisample << std::endl;
-				break;
-
 			case SDLK_5:
-
-				Multisample = 4;
-				std::cout << "Multisample: " << Multisample << std::endl;
-				break;
-				
 			case SDLK_6:
+			case SDLK_7:
+			case SDLK_8:
 
-				Multisample = 5;
-				std::cout << "Multisample: " << Multisample << std::endl;
+				CurrentSettings = Event.Key - SDLK_1;
+				if (CurrentSettings >= ESS_COUNT)
+					CurrentSettings = ESS_COUNT - 1;
+				std::cout << "Multisample: " << CurrentSettings << std::endl;
 				break;
 
 			case SDLK_z:
