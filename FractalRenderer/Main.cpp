@@ -45,8 +45,9 @@ class CMainState : public CState<CMainState>
 
 	int CurrentFractal;
 	int CurrentSettings;
+	int CurrentColor;
 
-	CTexture * ColorMap;
+	std::vector<CTexture *> ColorMaps;
 	SVector3 uSetColor;
 	
 	float TextureScaling;
@@ -72,7 +73,7 @@ public:
 
 	CMainState()
 		: sX(1.0), sY(1.0), cX(0.0), cY(0.7), max_iteration(1000), uSetColor(0.0f), ScaleFactor(1), TextureScaling(1.f),
-		CurrentFractal(EFT_MANDEL), CurrentSettings(ESS_DEFAULT)
+		CurrentFractal(EFT_MANDEL), CurrentSettings(ESS_DEFAULT), CurrentColor(0)
 	{}
 
 	void begin()
@@ -113,11 +114,14 @@ public:
 		Shader[EFT_MANDEL][ESS_STOCH] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-Stoch.frag");
 		Shader[EFT_MANDEL][ESS_STOCH2] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-2x2Stoch.frag");
 
-		CImage * ColorImage = CTextureLoader::loadImage("Spectrum1.bmp");
-
 		STextureCreationFlags Flags;
+		Flags.Wrap = GL_MIRRORED_REPEAT;
 		Flags.MipMaps = false;
-		ColorMap = new CTexture(ColorImage, Flags);
+		
+		ColorMaps.push_back(new CTexture(CTextureLoader::loadImage("Spectrum1.bmp"), Flags));
+		ColorMaps.push_back(new CTexture(CTextureLoader::loadImage("Spectrum2.bmp"), Flags));
+		ColorMaps.push_back(new CTexture(CTextureLoader::loadImage("Quadrant1.bmp"), Flags));
+		ColorMaps.push_back(new CTexture(CTextureLoader::loadImage("Quadrant2.bmp"), Flags));
 	}
 
 	class SPostProcessPass
@@ -162,7 +166,7 @@ public:
 		Pass.Doubles["sY"] = sY;
 		Pass.Floats["TextureScaling"] = TextureScaling;
 		Pass.Ints["max_iteration"] = max_iteration;
-		Pass.Textures["uColorMap"] = ColorMap;
+		Pass.Textures["uColorMap"] = ColorMaps[CurrentColor];
 		Pass.Vector3s["uSetColor"] = uSetColor;
 
 		if (CurrentSettings != ESS_DEFAULT)
@@ -283,6 +287,22 @@ public:
 				ScaleFactor ++;
 				recalcScale();
 				
+				break;
+
+			case SDLK_u:
+
+				++ CurrentColor;
+				if (CurrentColor >= ColorMaps.size())
+					CurrentColor = 0;
+
+				break;
+
+			case SDLK_j:
+
+				-- CurrentColor;
+				if (CurrentColor < 0)
+					CurrentColor = ColorMaps.size() - 1;
+
 				break;
 				
 			}
