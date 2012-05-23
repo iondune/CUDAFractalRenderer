@@ -49,6 +49,7 @@ class CMainState : public CState<CMainState>
 
 	std::vector<CTexture *> ColorMaps;
 	SVector3 uSetColor;
+	int SetColorCounter;
 	
 	float TextureScaling;
 	int ScaleFactor;
@@ -67,13 +68,52 @@ class CMainState : public CState<CMainState>
 		}
 	}
 
+	void setSetColor()
+	{
+		if (SetColorCounter > 8)
+			SetColorCounter = 0;
+		if (SetColorCounter < 0)
+			SetColorCounter = 8;
+
+		switch (SetColorCounter)
+		{
+		case 0:
+			uSetColor = SVector3(0.f);
+			break;
+		case 1:
+			uSetColor = SVector3(1.f);
+			break;
+		case 2:
+			uSetColor = SVector3(0.9f, 0.2f, 0.1f);
+			break;
+		case 3:
+			uSetColor = SVector3(0.2f, 0.9f, 0.1f);
+			break;
+		case 4:
+			uSetColor = SVector3(0.1f, 0.2f, 0.9f);
+			break;
+		case 5:
+			uSetColor = SVector3(0.9f, 0.8f, 0.1f);
+			break;
+		case 6:
+			uSetColor = SVector3(0.8f, 0.6f, 0.4f);
+			break;
+		case 7:
+			uSetColor = SVector3(0.4f, 0.6f, 0.8f);
+			break;
+		case 8:
+			uSetColor = SVector3(0.9f, 0.3f, 0.8f);
+			break;
+		};
+	}
+
 public:
 
 	static GLuint QuadHandle;
 
 	CMainState()
 		: sX(1.0), sY(1.0), cX(0.0), cY(0.7), max_iteration(1000), uSetColor(0.0f), ScaleFactor(1), TextureScaling(1.f),
-		CurrentFractal(EFT_MANDEL), CurrentSettings(ESS_DEFAULT), CurrentColor(0)
+		CurrentFractal(EFT_MANDEL), CurrentSettings(ESS_DEFAULT), CurrentColor(0), SetColorCounter(0)
 	{}
 
 	void begin()
@@ -292,7 +332,7 @@ public:
 			case SDLK_u:
 
 				++ CurrentColor;
-				if (CurrentColor >= ColorMaps.size())
+				if (CurrentColor >= (int) ColorMaps.size())
 					CurrentColor = 0;
 
 				break;
@@ -302,6 +342,22 @@ public:
 				-- CurrentColor;
 				if (CurrentColor < 0)
 					CurrentColor = ColorMaps.size() - 1;
+
+				break;
+
+			case SDLK_i:
+
+				++ SetColorCounter;
+
+				setSetColor();
+
+				break;
+
+			case SDLK_k:
+
+				-- SetColorCounter;
+
+				setSetColor();
 
 				break;
 				
