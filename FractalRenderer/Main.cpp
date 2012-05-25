@@ -153,6 +153,7 @@ public:
 		Shader[EFT_MANDEL][ESS_MS4] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-4x4MS.frag");
 		Shader[EFT_MANDEL][ESS_STOCH] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-Stoch.frag");
 		Shader[EFT_MANDEL][ESS_STOCH2] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-2x2Stoch.frag");
+		Shader[EFT_JULIA][ESS_DEFAULT] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Test1.frag");
 
 		STextureCreationFlags Flags;
 		Flags.Wrap = GL_MIRRORED_REPEAT;
@@ -199,23 +200,25 @@ public:
 		SPostProcessPass Pass;
 		Pass.Shader = Shader[CurrentFractal][CurrentSettings];
 
-
-		Pass.Doubles["cX"] = cX;
-		Pass.Doubles["cY"] = cY;
-		Pass.Doubles["sX"] = sX;
-		Pass.Doubles["sY"] = sY;
-		Pass.Floats["TextureScaling"] = TextureScaling;
-		Pass.Ints["max_iteration"] = max_iteration;
-		Pass.Textures["uColorMap"] = ColorMaps[CurrentColor];
-		Pass.Vector3s["uSetColor"] = uSetColor;
-
-		if (CurrentSettings != ESS_DEFAULT)
+		if (Pass.Shader)
 		{
-			Pass.Ints["uScreenWidth"] = Application.getWindowSize().X;
-			Pass.Ints["uScreenHeight"] = Application.getWindowSize().Y;
-		}
+			Pass.Doubles["cX"] = cX;
+			Pass.Doubles["cY"] = cY;
+			Pass.Doubles["sX"] = sX;
+			Pass.Doubles["sY"] = sY;
+			Pass.Floats["TextureScaling"] = TextureScaling;
+			Pass.Ints["max_iteration"] = max_iteration;
+			Pass.Textures["uColorMap"] = ColorMaps[CurrentColor];
+			Pass.Vector3s["uSetColor"] = uSetColor;
 
-		Pass.doPass();
+			if (CurrentSettings != ESS_DEFAULT)
+			{
+				Pass.Ints["uScreenWidth"] = Application.getWindowSize().X;
+				Pass.Ints["uScreenHeight"] = Application.getWindowSize().Y;
+			}
+
+			Pass.doPass();
+		}
 
 		SDL_GL_SwapBuffers();
 	}
@@ -247,6 +250,14 @@ public:
 			case SDLK_d:
 
 				cX += sX * MoveSpeed;
+				break;
+
+			case SDLK_COMMA:
+
+				++ CurrentFractal;
+				if (CurrentFractal > EFT_COUNT)
+					CurrentFractal = 0;
+				std::cout << "Fractal: " << CurrentFractal << std::endl;
 				break;
 
 			case SDLK_m:
