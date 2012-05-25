@@ -77,9 +77,9 @@ void main()
         getFractalColor(vTexCoord + vec2(xOff, 2.0 * yOff)) + 
         getFractalColor(vTexCoord + vec2(xOff, 3.0 * yOff)) + 
         
-        getFractalColor(vTexCoord + vec2(2.0 * xOff, 2.0 * yOff) + 
-        getFractalColor(vTexCoord + vec2(2.0 * xOff, 3.0 * yOff) + 
-        getFractalColor(vTexCoord + vec2(3.0 * xOff, 2.0 * yOff) + 
+        getFractalColor(vTexCoord + vec2(2.0 * xOff, 2.0 * yOff)) + 
+        getFractalColor(vTexCoord + vec2(2.0 * xOff, 3.0 * yOff)) + 
+        getFractalColor(vTexCoord + vec2(3.0 * xOff, 2.0 * yOff)) + 
         getFractalColor(vTexCoord + vec2(3.0 * xOff, 3.0 * yOff))
-        ) / 16;
+        ) / 16.0;
 }
