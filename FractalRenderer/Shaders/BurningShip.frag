@@ -28,7 +28,7 @@ vec4 getFractalColor(vec2 pos)
     int iteration = 0;
     
     double x0 = pos.x;
-    double y0 = pos.y;
+    double y0 = 1.0 - pos.y;
 
     x0 -= 0.5;
     y0 -= 0.5;

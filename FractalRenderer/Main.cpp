@@ -153,7 +153,8 @@ public:
 		Shader[EFT_MANDEL][ESS_MS4] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-4x4MS.frag");
 		Shader[EFT_MANDEL][ESS_STOCH] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-Stoch.frag");
 		Shader[EFT_MANDEL][ESS_STOCH2] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-2x2Stoch.frag");
-		Shader[EFT_JULIA][ESS_DEFAULT] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Test1.frag");
+		Shader[EFT_JULIA][ESS_DEFAULT] = CShaderLoader::loadShader("QuadCopyUV.glsl", "BurningShip.frag");
+		Shader[EFT_JULIA][ESS_MS2] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Tricorn.frag");
 
 		STextureCreationFlags Flags;
 		Flags.Wrap = GL_MIRRORED_REPEAT;
@@ -255,7 +256,7 @@ public:
 			case SDLK_COMMA:
 
 				++ CurrentFractal;
-				if (CurrentFractal > EFT_COUNT)
+				if (CurrentFractal >= EFT_COUNT)
 					CurrentFractal = 0;
 				std::cout << "Fractal: " << CurrentFractal << std::endl;
 				break;
@@ -263,7 +264,7 @@ public:
 			case SDLK_m:
 
 				++ CurrentSettings;
-				if (CurrentSettings > ESS_COUNT)
+				if (CurrentSettings >= ESS_COUNT)
 					CurrentSettings = 0;
 				std::cout << "Multisample: " << CurrentSettings << std::endl;
 				break;
