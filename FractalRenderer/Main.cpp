@@ -25,6 +25,7 @@ enum EFractalType
 	EFT_MANDEL,
 	EFT_BURNING_SHIP,
 	EFT_TRICORN,
+	EFT_MULTIBROT_1,
 	EFT_JULIA,
 	EFT_COUNT
 };
@@ -155,6 +156,7 @@ public:
 		Shader[EFT_MANDEL][ESS_MS4] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-4x4MS.frag");
 		Shader[EFT_MANDEL][ESS_STOCH] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-Stoch.frag");
 		Shader[EFT_MANDEL][ESS_STOCH2] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-2x2Stoch.frag");
+
 		Shader[EFT_BURNING_SHIP][ESS_DEFAULT] = CShaderLoader::loadShader("QuadCopyUV.glsl", "BurningShip.frag");
 		Shader[EFT_BURNING_SHIP][ESS_MS2] = CShaderLoader::loadShader("QuadCopyUV.glsl", "BurningShip-2x2MS.frag");
 		Shader[EFT_BURNING_SHIP][ESS_MS3] = CShaderLoader::loadShader("QuadCopyUV.glsl", "BurningShip-3x3MS.frag");
@@ -165,7 +167,13 @@ public:
 		Shader[EFT_TRICORN][ESS_MS3] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Tricorn-3x3MS.frag");
 		Shader[EFT_TRICORN][ESS_MS4] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Tricorn-4x4MS.frag");
 
-		Shader[EFT_JULIA][ESS_MS3] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Multibrot1.frag");
+		
+		Shader[EFT_MULTIBROT_1][ESS_DEFAULT] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Multibrot1.frag");
+		Shader[EFT_MULTIBROT_1][ESS_MS2] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Multibrot1-2x2MS.frag");
+		Shader[EFT_MULTIBROT_1][ESS_MS3] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Multibrot1-3x3MS.frag");
+		Shader[EFT_MULTIBROT_1][ESS_MS4] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Multibrot1-4x4MS.frag");
+		
+		//Shader[EFT_JULIA][ESS_MS3] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Multibrot1.frag");
 
 		STextureCreationFlags Flags;
 		Flags.Wrap = GL_MIRRORED_REPEAT;
