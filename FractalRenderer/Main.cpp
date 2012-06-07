@@ -175,6 +175,9 @@ public:
 
 		
 		Shader[EFT_MULTIBROT_2][ESS_DEFAULT] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Multibrot2.frag");
+		Shader[EFT_MULTIBROT_2][ESS_MS2] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Multibrot2-2x2MS.frag");
+		Shader[EFT_MULTIBROT_2][ESS_MS3] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Multibrot2-3x3MS.frag");
+		Shader[EFT_MULTIBROT_2][ESS_MS4] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Multibrot2-4x4MS.frag");
 		
 		//Shader[EFT_JULIA][ESS_MS3] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Multibrot1.frag");
 
