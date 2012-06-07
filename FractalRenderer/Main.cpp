@@ -223,7 +223,7 @@ public:
 
 	void printLocation()
 	{
-		printf("sX: %f   sY: %f   cX: %f   cY: %f\n", sX, sY, cX, cY);
+		printf("sX: %f   sY: %f   cX: %.15f   cY: %.15f\n", sX, sY, cX, cY);
 	}
 
 	void OnRenderStart(float const Elapsed)
