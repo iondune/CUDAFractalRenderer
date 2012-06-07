@@ -251,7 +251,7 @@ public:
 
 			case SDLK_w:
 
-				cY += sY * MoveSpeed;
+				cY += (CurrentFractal == EFT_BURNING_SHIP ? -1 : 1) * sY * MoveSpeed;
 				printLocation();
 				break;
 
@@ -263,7 +263,7 @@ public:
 
 			case SDLK_s:
 
-				cY -= sY * MoveSpeed;
+				cY -= (CurrentFractal == EFT_BURNING_SHIP ? -1 : 1) * sY * MoveSpeed;
 				printLocation();
 				break;
 
