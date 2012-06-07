@@ -23,6 +23,8 @@
 enum EFractalType
 {
 	EFT_MANDEL,
+	EFT_BURNING_SHIP,
+	EFT_TRICORN,
 	EFT_JULIA,
 	EFT_COUNT
 };
@@ -153,8 +155,17 @@ public:
 		Shader[EFT_MANDEL][ESS_MS4] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-4x4MS.frag");
 		Shader[EFT_MANDEL][ESS_STOCH] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-Stoch.frag");
 		Shader[EFT_MANDEL][ESS_STOCH2] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Mandelbrot1-2x2Stoch.frag");
-		Shader[EFT_JULIA][ESS_DEFAULT] = CShaderLoader::loadShader("QuadCopyUV.glsl", "BurningShip.frag");
-		Shader[EFT_JULIA][ESS_MS2] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Tricorn.frag");
+		Shader[EFT_BURNING_SHIP][ESS_DEFAULT] = CShaderLoader::loadShader("QuadCopyUV.glsl", "BurningShip.frag");
+		Shader[EFT_BURNING_SHIP][ESS_MS2] = CShaderLoader::loadShader("QuadCopyUV.glsl", "BurningShip-2x2MS.frag");
+		Shader[EFT_BURNING_SHIP][ESS_MS3] = CShaderLoader::loadShader("QuadCopyUV.glsl", "BurningShip-3x3MS.frag");
+		Shader[EFT_BURNING_SHIP][ESS_MS4] = CShaderLoader::loadShader("QuadCopyUV.glsl", "BurningShip-4x4MS.frag");
+
+		Shader[EFT_TRICORN][ESS_DEFAULT] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Tricorn.frag");
+		Shader[EFT_TRICORN][ESS_MS2] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Tricorn-2x2MS.frag");
+		Shader[EFT_TRICORN][ESS_MS3] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Tricorn-3x3MS.frag");
+		Shader[EFT_TRICORN][ESS_MS4] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Tricorn-4x4MS.frag");
+
+		Shader[EFT_JULIA][ESS_MS3] = CShaderLoader::loadShader("QuadCopyUV.glsl", "Multibrot1.frag");
 
 		STextureCreationFlags Flags;
 		Flags.Wrap = GL_MIRRORED_REPEAT;
@@ -196,6 +207,11 @@ public:
 	double cX, cY;
 	int max_iteration;
 
+	void printLocation()
+	{
+		printf("sX: %f   sY: %f   cX: %f   cY: %f\n", sX, sY, cX, cY);
+	}
+
 	void OnRenderStart(float const Elapsed)
 	{
 		SPostProcessPass Pass;
@@ -236,21 +252,25 @@ public:
 			case SDLK_w:
 
 				cY += sY * MoveSpeed;
+				printLocation();
 				break;
 
 			case SDLK_a:
 
 				cX -= sX * MoveSpeed;
+				printLocation();
 				break;
 
 			case SDLK_s:
 
 				cY -= sY * MoveSpeed;
+				printLocation();
 				break;
 
 			case SDLK_d:
 
 				cX += sX * MoveSpeed;
+				printLocation();
 				break;
 
 			case SDLK_COMMA:
