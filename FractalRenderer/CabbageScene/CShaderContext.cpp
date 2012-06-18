@@ -72,7 +72,10 @@ void CShaderContext::uniform(GLuint const uniformHandle, float const uniform)
 
 void CShaderContext::uniform(GLuint const uniformHandle, double const uniform)
 {
-	glUniform1d(uniformHandle, uniform);
+	if (glUniform1d)
+		glUniform1d(uniformHandle, uniform);
+	else
+		glUniform1f(uniformHandle, uniform);
 }
 
 void CShaderContext::uniform(GLuint const uniformHandle, int const uniform)

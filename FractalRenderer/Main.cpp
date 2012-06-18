@@ -227,6 +227,11 @@ int main(int argc, char * argv[])
 	CApplication & Application = CApplication::get();
 	Application.init(SPosition2(900, 900));
 
+	if (! GLEW_ARB_gpu_shader_fp64)
+	{
+		std::cout << "FUCK WE DON'T HAVE DOUBLES IN SHADERS FUCK" << std::endl;
+	}
+
 	Application.getStateManager().setState(& CMainState::get());
 
 	Application.run();
