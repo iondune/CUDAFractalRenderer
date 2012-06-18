@@ -42,10 +42,17 @@ vec4 getFractalColor(vec2 pos)
     double x = 0.0, y = 0.0;
     while (x*x + y*y < 4.0 && iteration < max_iteration)
     {
-        double xtemp = x*x - y*y + x0;
-        y = 2.0*x*y + y0;
-        
-        x = xtemp;
+        double xo = x;
+        double yo = y;
+
+        double xtemp = x*x - y*y;// + x0;
+        y = 2.0*x*y;// + y0;
+
+        double xtemp2 = xo * xtemp - yo * y;
+        double ytmpy = xo * y + xtemp * yo;
+
+        x = xtemp2 + x0;
+        y = ytmpy + y0;
         
         ++ iteration;
     }

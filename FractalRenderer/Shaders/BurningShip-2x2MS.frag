@@ -28,7 +28,7 @@ vec4 getFractalColor(vec2 pos)
     int iteration = 0;
     
     double x0 = pos.x;
-    double y0 = pos.y;
+    double y0 = 1.0 - pos.y;
 
     x0 -= 0.5;
     y0 -= 0.5;
@@ -43,7 +43,7 @@ vec4 getFractalColor(vec2 pos)
     while (x*x + y*y < 4.0 && iteration < max_iteration)
     {
         double xtemp = x*x - y*y + x0;
-        y = 2.0*x*y + y0;
+        y = 2.0*abs(x)*abs(y) + y0;
         
         x = xtemp;
         
@@ -59,5 +59,10 @@ vec4 getFractalColor(vec2 pos)
 
 void main()
 {
-    FragColor = getFractalColor(vTexCoord);
+    float xOff = 1.0 / float(uScreenWidth) / 2.0;
+    float yOff = 1.0 / float(uScreenHeight) / 2.0;
+    FragColor = (getFractalColor(vTexCoord) + 
+        getFractalColor(vTexCoord + vec2(0, yOff)) + 
+        getFractalColor(vTexCoord + vec2(xOff, 0)) +
+        getFractalColor(vTexCoord + vec2(xOff, yOff))) / 4;
 }

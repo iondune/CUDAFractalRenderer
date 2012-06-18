@@ -7,16 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef __unix__
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
-
-#ifdef _WIN32
-#include <windows.h>
-#include <windowsx.h>
 #include <GL/glew.h>
-#endif
 
 #include <math.h>
 

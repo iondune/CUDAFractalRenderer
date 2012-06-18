@@ -59,5 +59,10 @@ vec4 getFractalColor(vec2 pos)
 
 void main()
 {
-    FragColor = getFractalColor(vTexCoord);
+    float xOff = 1.0 / float(uScreenWidth) / 2.0;
+    float yOff = 1.0 / float(uScreenHeight) / 2.0;
+    FragColor = (getFractalColor(vTexCoord) + 
+        getFractalColor(vTexCoord + vec2(0, yOff)) + 
+        getFractalColor(vTexCoord + vec2(xOff, 0)) +
+        getFractalColor(vTexCoord + vec2(xOff, yOff))) / 4;
 }

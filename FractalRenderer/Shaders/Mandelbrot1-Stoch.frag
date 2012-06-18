@@ -57,7 +57,14 @@ vec4 getFractalColor(vec2 pos)
     return iteration == max_iteration ? vec4(uSetColor, 1.0) : Color;
 }
 
+float rand(vec2 co)
+{
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
 void main()
 {
-    FragColor = getFractalColor(vTexCoord);
+    float xOff = 1.0 / float(uScreenWidth) / 2.0;
+    float yOff = 1.0 / float(uScreenHeight) / 2.0;
+    FragColor = getFractalColor(vTexCoord + vec2(xOff * rand(vTexCoord), yOff * rand(vTexCoord + vec2(uScreenWidth, uScreenHeight))));
 }
