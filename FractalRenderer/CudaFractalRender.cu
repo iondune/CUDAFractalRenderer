@@ -54,5 +54,9 @@ u8 const * CudaRenderFractal(u32 const Width, u32 const Height)
 	Kernel<<<Grid, Block>>>(DeviceImage, Width, Height);
 
 	cudaMemcpy(HostImage, DeviceImage, Width * Height * 3 * sizeof(u8), cudaMemcpyDeviceToHost);
+	cudaFree(DeviceImage);
+	cudaFree(DeviceCounter);
+	cudaFree(DeviceHistogram);
+
 	return HostImage;
 }
