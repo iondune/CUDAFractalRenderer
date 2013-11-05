@@ -1,5 +1,5 @@
-attribute vec2 aPosition;
 
+attribute vec2 aPosition;
 varying vec2 vTexCoord;
 
 void main()

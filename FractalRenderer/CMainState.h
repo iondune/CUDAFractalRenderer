@@ -27,8 +27,8 @@ enum EShaderSettings
 
 class CMainState : public CContextState<CMainState>
 {
-
-	CShader * Shader[EFT_COUNT][ESS_COUNT];
+	CShader * Finalize;
+	CTexture * CopyTexture;
 
 	int CurrentFractal;
 	int CurrentSettings;

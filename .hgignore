@@ -12,4 +12,6 @@ syntax: glob
 *.exe
 */ShaderCompileLog.txt
 *.unsuccessfulbuild
+*.cu.deps
+*.cu.cache
 Thumbs.db

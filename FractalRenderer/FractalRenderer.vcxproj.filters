@@ -11,4 +11,10 @@
     <ClInclude Include="CMainState.h" />
     <ClInclude Include="SRenderPass.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="CudaFractalRender.cuh" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="CudaFractalRender.cu" />
+  </ItemGroup>
 </Project>

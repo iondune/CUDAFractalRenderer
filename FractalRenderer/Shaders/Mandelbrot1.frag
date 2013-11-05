@@ -4,6 +4,7 @@ in vec2 vTexCoord;
 
 
 uniform sampler2D uColorMap;
+uniform sampler2D uCounterMap;
 
 uniform double cX;
 uniform double cY;
