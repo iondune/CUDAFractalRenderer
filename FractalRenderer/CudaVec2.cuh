@@ -20,7 +20,7 @@ struct CudaVec2
 		: X(v), Y(v)
 	{}
 
-	__universal__ CudaVec2(f32 const x, T const y)
+	__universal__ CudaVec2(T const x, T const y)
 		: X(x), Y(y)
 	{}
 
