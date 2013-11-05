@@ -24,7 +24,13 @@ void CMainState::Update(f32 const Elapsed)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	u8 const * const Image = CudaRenderFractal(Application->GetWindow().GetSize().X, Application->GetWindow().GetSize().Y);
+	SFractalParams Params;
+	Params.Center = cvec2d(cX, cY);
+	Params.Scale = cvec2d(sX, sY);
+	Params.IterationMax = max_iteration;
+	Params.ScreenSize = cvec2u(Application->GetWindow().GetSize().X, Application->GetWindow().GetSize().Y);
+
+	u8 const * const Image = CudaRenderFractal(Params);
 	glBindTexture(GL_TEXTURE_2D, CopyTexture->getTextureHandle());
 	glTexSubImage2D(
 		GL_TEXTURE_2D, 0, 0, 0, 

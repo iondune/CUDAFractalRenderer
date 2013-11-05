@@ -5,101 +5,86 @@
 #include <ionCore/ionUtils.h>
 
 
-__global__ void HistogramKernel(f64 * Counter, u32 * Histogram, u32 const Width, u32 const Height)
+__global__ void HistogramKernel(f64 * Counter, u32 * Histogram, SFractalParams Params)
 {
-	f32 const AspectRatio = (f32) Width / (f32) Height;
-	f64 const sX(AspectRatio * 3.0), sY(3.0), cX(-0.5), cY(0);
-	u32 const max_iteration = 5000;
+	cvec2u PixelCoordinates(blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y);
 
-	u32 posX = (blockIdx.x) * blockDim.x + threadIdx.x;
-	u32 posY = (blockIdx.y) * blockDim.y + threadIdx.y;
-
-	if (posX >= Width || posY >= Height)
+	if (PixelCoordinates.X >= Params.ScreenSize.X || PixelCoordinates.Y >= Params.ScreenSize.Y)
 		return;
 
-	u32 iteration = 0;
+	cvec2d StartPosition(PixelCoordinates.X / (f64) Params.ScreenSize.X, PixelCoordinates.Y / (f64) Params.ScreenSize.Y);
+	StartPosition -= 0.5;
+	StartPosition *= Params.Scale;
+	StartPosition += Params.Center;
 
-	f64 x0 = posX / (f64) Width;
-	f64 y0 = posY / (f64) Height;
-	x0 -= 0.5;
-	y0 -= 0.5;
-	x0 *= sX;
-	y0 *= sY;
-	x0 += cX;
-	y0 += cY;
-
-	f64 x = 0.0, y = 0.0;
-	while (x*x + y*y < 256.0 && iteration < max_iteration)
+	cvec2d Point(0, 0);
+	u32 IterationCounter = 0;
+	while (Dot(Point, Point) < 256.0 && IterationCounter < Params.IterationMax)
 	{
-		f64 xtemp = x*x - y*y + x0;
-		y = 2.0*x*y + y0;
-
-		x = xtemp;
-		++ iteration;
+		Point = cvec2d(Point.X*Point.X - Point.Y*Point.Y + StartPosition.X, 2 * Point.X * Point.Y + StartPosition.Y);
+		++ IterationCounter;
 	}
 
-	f64 f_iteration = 0;
-	if (iteration < max_iteration)
+	f64 ContinuousIterator = 0;
+	if (IterationCounter < Params.IterationMax)
 	{
-		f64 zn = sqrt(x*x + y*y);
-		f64 nu = log(log(zn) / log(2.0)) / log(2.0);
-		f_iteration = iteration + 1.0 - nu;
+		f64 Zn = sqrt(Dot(Point, Point));
+		f64 Nu = log(log(Zn) / log(2.0)) / log(2.0);
+		ContinuousIterator = IterationCounter + 1 - Nu;
 	}
-	atomicAdd(Histogram + iteration, 1);
-	Counter[posY * Width + posX] = f_iteration;
+	atomicAdd(Histogram + IterationCounter, 1);
+	Counter[PixelCoordinates.Y * Params.ScreenSize.X + PixelCoordinates.X] = ContinuousIterator;
 }
 
-__global__ void DrawKernel(u8 * Image, f64 * Counter, u32 * Histogram, u32 const Width, u32 const Height)
+__global__ void DrawKernel(u8 * Image, f64 * Counter, u32 * Histogram, SFractalParams Params)
 {
-	u32 const max_iteration = 5000;
-
-	u32 posX = (blockIdx.x) * blockDim.x + threadIdx.x;
-	u32 posY = (blockIdx.y) * blockDim.y + threadIdx.y;
-
-	if (posX >= Width || posY >= Height)
+	cvec2u PixelCoordinates(blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y);
+	
+	if (PixelCoordinates.X >= Params.ScreenSize.X || PixelCoordinates.Y >= Params.ScreenSize.Y)
 		return;
 
-	u32 iteration = floor(Counter[posY * Width + posX]);
+	u32 iteration = floor(Counter[PixelCoordinates.Y * Params.ScreenSize.X + PixelCoordinates.X]);
 	f64 total = 0;
-	for (u32 i = 0; i < max_iteration; ++ i)
-	{
+	for (u32 i = 0; i < Params.IterationMax; ++ i)
 		total += Histogram[i];
-	}
 
 	f64 hue = 0;
 	for (u32 i = 0; i < iteration; ++ i)
-	{
 		hue += Histogram[i] / total;
-	}
 	f64 oneuphue = hue + Histogram[iteration] / total;
 
-	f64 delta = Counter[posY * Width + posX] - (f64) iteration;
+	f64 delta = Counter[PixelCoordinates.Y * Params.ScreenSize.X + PixelCoordinates.X] - (f64) iteration;
 	hue = hue * (1 - delta) + oneuphue * delta;
 
-	Image[posY * Width * 3 + posX * 3 + 0] = 0;
-	Image[posY * Width * 3 + posX * 3 + 1] = (u8) (hue * 255.0);
-	Image[posY * Width * 3 + posX * 3 + 2] = 50;
+	Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 0] = 0;
+	Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 1] = (u8) (hue * 255.0);
+	Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 2] = 50;
 }
 
-u8 const * CudaRenderFractal(u32 const Width, u32 const Height)
+u8 const * CudaRenderFractal(SFractalParams const & Params)
 {
-	u8 * HostImage = new u8[Width * Height * 3];
+	u32 const ScreenSize = Params.ScreenSize.X * Params.ScreenSize.Y;
+	u32 const ImageSize = ScreenSize * 3;
+	u32 const CounterSize = ScreenSize * sizeof(f64);
+	u32 const HistogramSize = (Params.IterationMax + 1) * sizeof(u32);
 
-	u8 * DeviceImage; cudaMalloc((void**) & DeviceImage, Width * Height * 3 * sizeof(u8));
-	f64 * DeviceCounter; cudaMalloc((void**) & DeviceCounter, Width * Height * sizeof(f64));
-		cudaMemset(DeviceCounter, 0, Width * Height * sizeof(f64));
-	u32 * DeviceHistogram; cudaMalloc((void**) & DeviceHistogram, 10000 * sizeof(u32));
-		cudaMemset(DeviceHistogram, 0, 10000 * sizeof(u32));
+	u8 * HostImage = new u8[Params.ScreenSize.X * Params.ScreenSize.Y * 3];
+
+	u8 * DeviceImage; cudaMalloc((void**) & DeviceImage, ImageSize);
+	f64 * DeviceCounter; cudaMalloc((void**) & DeviceCounter, CounterSize);
+		cudaMemset(DeviceCounter, 0, CounterSize);
+	u32 * DeviceHistogram; cudaMalloc((void**) & DeviceHistogram, HistogramSize);
+		cudaMemset(DeviceHistogram, 0, HistogramSize);
 
 	u32 const BlockSize = 16;
 	dim3 const Grid(
-		Width / BlockSize + (Width % BlockSize ? 1 : 0), 
-		Height / BlockSize + (Height % BlockSize ? 1 : 0));
+		Params.ScreenSize.X / BlockSize + (Params.ScreenSize.X % BlockSize ? 1 : 0), 
+		Params.ScreenSize.Y / BlockSize + (Params.ScreenSize.Y % BlockSize ? 1 : 0));
 	dim3 const Block(BlockSize, BlockSize);
-	HistogramKernel<<<Grid, Block>>>(DeviceCounter, DeviceHistogram, Width, Height);
-	DrawKernel<<<Grid, Block>>>(DeviceImage, DeviceCounter, DeviceHistogram, Width, Height);
+	HistogramKernel<<<Grid, Block>>>(DeviceCounter, DeviceHistogram, Params);
+	DrawKernel<<<Grid, Block>>>(DeviceImage, DeviceCounter, DeviceHistogram, Params);
 
-	cudaMemcpy(HostImage, DeviceImage, Width * Height * 3 * sizeof(u8), cudaMemcpyDeviceToHost);
+	cudaMemcpy(HostImage, DeviceImage, Params.ScreenSize.X * Params.ScreenSize.Y * 3 * sizeof(u8), cudaMemcpyDeviceToHost);
 	cudaFree(DeviceImage);
 	cudaFree(DeviceCounter);
 	cudaFree(DeviceHistogram);
