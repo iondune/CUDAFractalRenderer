@@ -9,7 +9,7 @@ __global__ void HistogramKernel(f64 * Counter, u32 * Histogram, u32 const Width,
 {
 	f32 const AspectRatio = (f32) Width / (f32) Height;
 	f64 const sX(AspectRatio * 3.0), sY(3.0), cX(-0.5), cY(0);
-	u32 const max_iteration = 1000;
+	u32 const max_iteration = 5000;
 
 	u32 posX = (blockIdx.x) * blockDim.x + threadIdx.x;
 	u32 posY = (blockIdx.y) * blockDim.y + threadIdx.y;
@@ -29,7 +29,7 @@ __global__ void HistogramKernel(f64 * Counter, u32 * Histogram, u32 const Width,
 	y0 += cY;
 
 	f64 x = 0.0, y = 0.0;
-	while (x*x + y*y < 16.0 && iteration < max_iteration)
+	while (x*x + y*y < 256.0 && iteration < max_iteration)
 	{
 		f64 xtemp = x*x - y*y + x0;
 		y = 2.0*x*y + y0;
@@ -51,7 +51,7 @@ __global__ void HistogramKernel(f64 * Counter, u32 * Histogram, u32 const Width,
 
 __global__ void DrawKernel(u8 * Image, f64 * Counter, u32 * Histogram, u32 const Width, u32 const Height)
 {
-	u32 const max_iteration = 1000;
+	u32 const max_iteration = 5000;
 
 	u32 posX = (blockIdx.x) * blockDim.x + threadIdx.x;
 	u32 posY = (blockIdx.y) * blockDim.y + threadIdx.y;
@@ -59,7 +59,7 @@ __global__ void DrawKernel(u8 * Image, f64 * Counter, u32 * Histogram, u32 const
 	if (posX >= Width || posY >= Height)
 		return;
 
-	u32 iteration = Counter[posY * Width + posX];
+	u32 iteration = floor(Counter[posY * Width + posX]);
 	f64 total = 0;
 	for (u32 i = 0; i < max_iteration; ++ i)
 	{
@@ -71,9 +71,13 @@ __global__ void DrawKernel(u8 * Image, f64 * Counter, u32 * Histogram, u32 const
 	{
 		hue += Histogram[i] / total;
 	}
+	f64 oneuphue = hue + Histogram[iteration] / total;
+
+	f64 delta = Counter[posY * Width + posX] - (f64) iteration;
+	hue = hue * (1 - delta) + oneuphue * delta;
 
 	Image[posY * Width * 3 + posX * 3 + 0] = 0;
-	Image[posY * Width * 3 + posX * 3 + 1] = (u8) ((hue/* + Counter[posY * Width + posX] - (f64) iteration*/) * 255.0);
+	Image[posY * Width * 3 + posX * 3 + 1] = (u8) (hue * 255.0);
 	Image[posY * Width * 3 + posX * 3 + 2] = 50;
 }
 
