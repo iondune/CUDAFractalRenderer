@@ -68,7 +68,7 @@ u8 const * CudaRenderFractal(SFractalParams const & Params)
 	u32 const CounterSize = ScreenSize * sizeof(f64);
 	u32 const HistogramSize = (Params.IterationMax + 1) * sizeof(u32);
 
-	u8 * HostImage = new u8[Params.ScreenSize.X * Params.ScreenSize.Y * 3];
+	u8 * HostImage = new u8[ImageSize];
 
 	u8 * DeviceImage; cudaMalloc((void**) & DeviceImage, ImageSize);
 	f64 * DeviceCounter; cudaMalloc((void**) & DeviceCounter, CounterSize);
@@ -84,7 +84,7 @@ u8 const * CudaRenderFractal(SFractalParams const & Params)
 	HistogramKernel<<<Grid, Block>>>(DeviceCounter, DeviceHistogram, Params);
 	DrawKernel<<<Grid, Block>>>(DeviceImage, DeviceCounter, DeviceHistogram, Params);
 
-	cudaMemcpy(HostImage, DeviceImage, Params.ScreenSize.X * Params.ScreenSize.Y * 3 * sizeof(u8), cudaMemcpyDeviceToHost);
+	cudaMemcpy(HostImage, DeviceImage, ImageSize * sizeof(u8), cudaMemcpyDeviceToHost);
 	cudaFree(DeviceImage);
 	cudaFree(DeviceCounter);
 	cudaFree(DeviceHistogram);

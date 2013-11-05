@@ -36,6 +36,7 @@ void CMainState::Update(f32 const Elapsed)
 		GL_TEXTURE_2D, 0, 0, 0, 
 		Application->GetWindow().GetSize().X, Application->GetWindow().GetSize().Y,
 		GL_RGB, GL_UNSIGNED_BYTE, Image);
+	delete [] Image;
 			
 	SRenderPass Pass;
 	Pass.Shader = Finalize;
