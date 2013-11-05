@@ -1,24 +1,7 @@
-#include <CabbageCore.h>
-#include <CabbageScene.h>
-#include <CabbageFramework.h>
 
-#ifdef __unix__
-//#include <GL/gl.h>
-//#include <GL/glu.h>
-
-#endif
-
-#ifdef _WIN32
-#pragma comment(lib, "glew32.lib")
-#pragma comment(lib, "SDL.lib")
-#pragma comment(lib, "SDLmain.lib")
-#pragma comment(lib, "OpenGL32.lib")
-#pragma comment(lib, "glu32.lib")
-#pragma comment(lib, "freetype.lib")
-#endif
-
-#include <GL/glew.h>
-#include <SDL/SDL.h>
+#include <ionWindow.h>
+#include <ionScene.h>
+#include <ionFramework.h>
 
 enum EFractalType
 {
@@ -42,7 +25,7 @@ enum EShaderSettings
 	ESS_COUNT
 };
 
-class CMainState : public CState<CMainState>
+class CMainState : public CContextState<CMainState>
 {
 
 	CShader * Shader[EFT_COUNT][ESS_COUNT];
@@ -52,7 +35,7 @@ class CMainState : public CState<CMainState>
 	int CurrentColor;
 
 	std::vector<CTexture *> ColorMaps;
-	SVector3 uSetColor;
+	vec3f uSetColor;
 	int SetColorCounter;
 	
 	float TextureScaling;
@@ -82,31 +65,31 @@ class CMainState : public CState<CMainState>
 		switch (SetColorCounter)
 		{
 		case 0:
-			uSetColor = SVector3(0.f);
+			uSetColor = vec3f(0.f);
 			break;
 		case 1:
-			uSetColor = SVector3(1.f);
+			uSetColor = vec3f(1.f);
 			break;
 		case 2:
-			uSetColor = SVector3(0.9f, 0.2f, 0.1f);
+			uSetColor = vec3f(0.9f, 0.2f, 0.1f);
 			break;
 		case 3:
-			uSetColor = SVector3(0.2f, 0.9f, 0.1f);
+			uSetColor = vec3f(0.2f, 0.9f, 0.1f);
 			break;
 		case 4:
-			uSetColor = SVector3(0.1f, 0.2f, 0.9f);
+			uSetColor = vec3f(0.1f, 0.2f, 0.9f);
 			break;
 		case 5:
-			uSetColor = SVector3(0.9f, 0.8f, 0.1f);
+			uSetColor = vec3f(0.9f, 0.8f, 0.1f);
 			break;
 		case 6:
-			uSetColor = SVector3(0.8f, 0.6f, 0.4f);
+			uSetColor = vec3f(0.8f, 0.6f, 0.4f);
 			break;
 		case 7:
-			uSetColor = SVector3(0.4f, 0.6f, 0.8f);
+			uSetColor = vec3f(0.4f, 0.6f, 0.8f);
 			break;
 		case 8:
-			uSetColor = SVector3(0.9f, 0.3f, 0.8f);
+			uSetColor = vec3f(0.9f, 0.3f, 0.8f);
 			break;
 		};
 	}
@@ -120,10 +103,8 @@ public:
 		CurrentFractal(EFT_MANDEL), CurrentSettings(ESS_DEFAULT), CurrentColor(0), SetColorCounter(0)
 	{}
 
-	void begin()
+	void Begin()
 	{
-		SDL_WM_SetCaption("Fractal Renderer!", "");
-
 		glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
@@ -185,10 +166,10 @@ public:
 		Flags.Wrap = GL_MIRRORED_REPEAT;
 		Flags.MipMaps = false;
 		
-		ColorMaps.push_back(new CTexture(CTextureLoader::loadImage("Spectrum1.bmp"), Flags));
-		ColorMaps.push_back(new CTexture(CTextureLoader::loadImage("Spectrum2.bmp"), Flags));
-		ColorMaps.push_back(new CTexture(CTextureLoader::loadImage("Quadrant1.bmp"), Flags));
-		ColorMaps.push_back(new CTexture(CTextureLoader::loadImage("Quadrant2.bmp"), Flags));
+		ColorMaps.push_back(new CTexture(CImageLoader::LoadImage("Spectrum1.bmp"), Flags));
+		ColorMaps.push_back(new CTexture(CImageLoader::LoadImage("Spectrum2.bmp"), Flags));
+		ColorMaps.push_back(new CTexture(CImageLoader::LoadImage("Quadrant1.bmp"), Flags));
+		ColorMaps.push_back(new CTexture(CImageLoader::LoadImage("Quadrant2.bmp"), Flags));
 	}
 
 	class SPostProcessPass
@@ -203,7 +184,7 @@ public:
 		std::map<std::string, float> Floats;
 		std::map<std::string, double> Doubles;
 		std::map<std::string, int> Ints;
-		std::map<std::string, SVector3> Vector3s;
+		std::map<std::string, vec3f> Vector3s;
 		std::map<std::string, CTexture *> Textures;
 
 		void doPass();
@@ -226,7 +207,7 @@ public:
 		printf("sX: %f   sY: %f   cX: %.15f   cY: %.15f\n", sX, sY, cX, cY);
 	}
 
-	void OnRenderStart(float const Elapsed)
+	void Update(f32 const Elapsed)
 	{
 		SPostProcessPass Pass;
 		Pass.Shader = Shader[CurrentFractal][CurrentSettings];
@@ -244,18 +225,18 @@ public:
 
 			if (CurrentSettings != ESS_DEFAULT)
 			{
-				Pass.Ints["uScreenWidth"] = Application.getWindowSize().X;
-				Pass.Ints["uScreenHeight"] = Application.getWindowSize().Y;
+				Pass.Ints["uScreenWidth"] = Application->GetWindow().GetSize().X;
+				Pass.Ints["uScreenHeight"] = Application->GetWindow().GetSize().Y;
 			}
 
 			Pass.doPass();
 		}
 
-		SDL_GL_SwapBuffers();
+		Application->GetWindow().SwapBuffers();
 	}
 
 
-	void OnKeyboardEvent(SKeyboardEvent const & Event)
+	void OnEvent(SKeyboardEvent & Event)
 	{
 		if (! Event.Pressed)
 		{
@@ -263,31 +244,31 @@ public:
 			switch (Event.Key)
 			{
 
-			case SDLK_w:
+			case EKey::W:
 
 				cY += (CurrentFractal == EFT_BURNING_SHIP ? -1 : 1) * sY * MoveSpeed;
 				printLocation();
 				break;
 
-			case SDLK_a:
+			case EKey::A:
 
 				cX -= sX * MoveSpeed;
 				printLocation();
 				break;
 
-			case SDLK_s:
+			case EKey::S:
 
 				cY -= (CurrentFractal == EFT_BURNING_SHIP ? -1 : 1) * sY * MoveSpeed;
 				printLocation();
 				break;
 
-			case SDLK_d:
+			case EKey::D:
 
 				cX += sX * MoveSpeed;
 				printLocation();
 				break;
 
-			case SDLK_COMMA:
+			case EKey::Comma:
 
 				++ CurrentFractal;
 				if (CurrentFractal >= EFT_COUNT)
@@ -295,7 +276,7 @@ public:
 				std::cout << "Fractal: " << CurrentFractal << std::endl;
 				break;
 
-			case SDLK_m:
+			case EKey::M:
 
 				++ CurrentSettings;
 				if (CurrentSettings >= ESS_COUNT)
@@ -303,46 +284,46 @@ public:
 				std::cout << "Multisample: " << CurrentSettings << std::endl;
 				break;
 
-			case SDLK_1:
-			case SDLK_2:
-			case SDLK_3:
-			case SDLK_4:
-			case SDLK_5:
-			case SDLK_6:
-			case SDLK_7:
-			case SDLK_8:
+			case EKey::Num1:
+			case EKey::Num2:
+			case EKey::Num3:
+			case EKey::Num4:
+			case EKey::Num5:
+			case EKey::Num6:
+			case EKey::Num7:
+			case EKey::Num8:
 
-				CurrentSettings = Event.Key - SDLK_1;
+				CurrentSettings = (int) Event.Key - (int) EKey::Num1;
 				if (CurrentSettings >= ESS_COUNT)
 					CurrentSettings = ESS_COUNT - 1;
 				std::cout << "Multisample: " << CurrentSettings << std::endl;
 				break;
 
-			case SDLK_z:
+			case EKey::Z:
 
 				sX *= 0.5;
 				sY *= 0.5;
 				break;
 
-			case SDLK_x:
+			case EKey::X:
 
 				sX *= 2.0;
 				sY *= 2.0;
 				break;
 
-			case SDLK_q:
+			case EKey::Q:
 
 				sX *= 0.75;
 				sY *= 0.75;
 				break;
 
-			case SDLK_e:
+			case EKey::E:
 
 				sX *= 1.33;
 				sY *= 1.33;
 				break;
 				
-			case SDLK_g:
+			case EKey::G:
 				
 				if (max_iteration)
 					max_iteration *= 2;
@@ -353,7 +334,7 @@ public:
 				
 				break;
 
-			case SDLK_b:
+			case EKey::B:
 				
 				max_iteration /= 2;
 				
@@ -361,21 +342,21 @@ public:
 				
 				break;
 				
-			case SDLK_h:
+			case EKey::H:
 				
 				ScaleFactor --;
 				recalcScale();
 				
 				break;
 				
-				case SDLK_n:
+			case EKey::N:
 				
 				ScaleFactor ++;
 				recalcScale();
 				
 				break;
 
-			case SDLK_u:
+			case EKey::U:
 
 				++ CurrentColor;
 				if (CurrentColor >= (int) ColorMaps.size())
@@ -383,7 +364,7 @@ public:
 
 				break;
 
-			case SDLK_j:
+			case EKey::J:
 
 				-- CurrentColor;
 				if (CurrentColor < 0)
@@ -391,7 +372,7 @@ public:
 
 				break;
 
-			case SDLK_i:
+			case EKey::I:
 
 				++ SetColorCounter;
 
@@ -399,7 +380,7 @@ public:
 
 				break;
 
-			case SDLK_k:
+			case EKey::K:
 
 				-- SetColorCounter;
 
@@ -411,9 +392,9 @@ public:
 		}
 	}
 
-	void OnMouseEvent(SMouseEvent const & Event)
+	void OnEvent(SMouseEvent & Event)
 	{
-		switch (Event.Type.Value)
+		switch (Event.Type)
 		{
 
 		case SMouseEvent::EType::Click:
@@ -461,12 +442,12 @@ void CMainState::SPostProcessPass::end()
 		Context->uniform(it->first, it->second);
 
 	for (std::map<std::string, double>::iterator it = Doubles.begin(); it != Doubles.end(); ++ it)
-		Context->uniform(it->first, it->second);
+		Context->uniform<f64>(it->first, it->second);
 
 	for (std::map<std::string, int>::iterator it = Ints.begin(); it != Ints.end(); ++ it)
 		Context->uniform(it->first, it->second);
 
-	for (std::map<std::string, SVector3>::iterator it = Vector3s.begin(); it != Vector3s.end(); ++ it)
+	for (std::map<std::string, vec3f>::iterator it = Vector3s.begin(); it != Vector3s.end(); ++ it)
 		Context->uniform(it->first, it->second);
 
 	Context->bindBufferObject("aPosition", QuadHandle, 2);
@@ -489,21 +470,25 @@ void CMainState::SPostProcessPass::doPass()
 
 int main(int argc, char * argv[])
 {
-	CTextureLoader::ImageDirectory = "Media/";
-	CMeshLoader::MeshDirectory = "Media/";
-	CShaderLoader::ShaderDirectory = "Shaders/";
+	vec2i ScreenSize(900, 900);
 
-	CApplication & Application = CApplication::get();
-	Application.init(SPosition2(900, 900));
+	CShaderLoader::ShaderDirectory = "Shaders/";
+	CImageLoader::ImageDirectory = "Media/";
+	CMeshLoader::MeshDirectory = "Media/";
+	
+	CApplication & Application = CApplication::Get();
+	Application.Init(ScreenSize, "Fractal Renderer", false);
+	Application.GetSceneManager().init(true, true);
 
 	if (! GLEW_ARB_gpu_shader_fp64)
 	{
 		std::cout << "FUCK WE DON'T HAVE DOUBLES IN SHADERS FUCK" << std::endl;
 	}
 
-	Application.getStateManager().setState(& CMainState::get());
+	CMainState & State = CMainState::Get();
 
-	Application.run();
+	Application.GetStateManager().SetState(& State);
+	Application.Run();
 
 	return 0;
 }
