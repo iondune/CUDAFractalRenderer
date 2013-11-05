@@ -2,8 +2,10 @@
 #include "CudaFractalRender.cuh"
 #include "cuda_runtime.h"
 
+#include <ionCore/ionUtils.h>
 
-__global__ void Kernel(u8 * Image, u32 const Width, u32 const Height)
+
+__global__ void HistogramKernel(u32 * Counter, u32 * Histogram, u32 const Width, u32 const Height)
 {
 	f32 const AspectRatio = (f32) Width / (f32) Height;
 	f64 const sX(AspectRatio * 3.0), sY(3.0), cX(-0.5), cY(0);
@@ -15,7 +17,7 @@ __global__ void Kernel(u8 * Image, u32 const Width, u32 const Height)
 	if (posX >= Width || posY >= Height)
 		return;
 
-	int iteration = 0;
+	u32 iteration = 0;
 
 	f64 x0 = posX / (f64) Width;
 	f64 y0 = posY / (f64) Height;
@@ -35,23 +37,55 @@ __global__ void Kernel(u8 * Image, u32 const Width, u32 const Height)
 		x = xtemp;
 		++ iteration;
 	}
+	atomicAdd(Histogram + iteration, 1);
+	Counter[posY * Width + posX] = iteration;
+}
 
-	Image[posY * Width * 3 + posX * 3 + 0] = (u8) (iteration / (f32) max_iteration * 255.f);
-	Image[posY * Width * 3 + posX * 3 + 1] = (u8) (iteration / (f32) max_iteration * 255.f);
+__global__ void DrawKernel(u8 * Image, u32 * Counter, u32 * Histogram, u32 const Width, u32 const Height)
+{
+	u32 const max_iteration = 1000;
+
+	u32 posX = (blockIdx.x) * blockDim.x + threadIdx.x;
+	u32 posY = (blockIdx.y) * blockDim.y + threadIdx.y;
+
+	if (posX >= Width || posY >= Height)
+		return;
+
+	u32 iteration = Counter[posY * Width + posX];
+	f64 total = 0;
+	for (u32 i = 0; i < max_iteration; ++ i)
+	{
+		total += Histogram[i];
+	}
+
+	f64 hue = 0;
+	for (u32 i = 0; i < iteration; ++ i)
+	{
+		hue += Histogram[i] / total;
+	}
+
+	Image[posY * Width * 3 + posX * 3 + 0] = 0;
+	Image[posY * Width * 3 + posX * 3 + 1] = (u8) (hue * 255.0);
 	Image[posY * Width * 3 + posX * 3 + 2] = 50;
 }
 
 u8 const * CudaRenderFractal(u32 const Width, u32 const Height)
 {
 	u8 * HostImage = new u8[Width * Height * 3];
+
 	u8 * DeviceImage; cudaMalloc((void**) & DeviceImage, Width * Height * 3 * sizeof(u8));
+	u32 * DeviceCounter; cudaMalloc((void**) & DeviceCounter, Width * Height * sizeof(u32));
+		cudaMemset(DeviceCounter, 0, Width * Height * sizeof(u32));
+	u32 * DeviceHistogram; cudaMalloc((void**) & DeviceHistogram, 10000 * sizeof(u32));
+		cudaMemset(DeviceHistogram, 0, 10000 * sizeof(u32));
 
 	u32 const BlockSize = 16;
 	dim3 const Grid(
 		Width / BlockSize + (Width % BlockSize ? 1 : 0), 
 		Height / BlockSize + (Height % BlockSize ? 1 : 0));
 	dim3 const Block(BlockSize, BlockSize);
-	Kernel<<<Grid, Block>>>(DeviceImage, Width, Height);
+	HistogramKernel<<<Grid, Block>>>(DeviceCounter, DeviceHistogram, Width, Height);
+	DrawKernel<<<Grid, Block>>>(DeviceImage, DeviceCounter, DeviceHistogram, Width, Height);
 
 	cudaMemcpy(HostImage, DeviceImage, Width * Height * 3 * sizeof(u8), cudaMemcpyDeviceToHost);
 	cudaFree(DeviceImage);
