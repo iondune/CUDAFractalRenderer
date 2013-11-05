@@ -41,7 +41,15 @@
     <Import Project="$(VisualStudioDir)\Projects\ionEngine\ionDefaultTarget.props" />
   </ImportGroup>
   <ItemGroup>
+    <ClCompile Include="CMainState.Event.cpp" />
+    <ClCompile Include="CMainState.Fractal.cpp" />
+    <ClCompile Include="CMainState.State.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="SRenderPass.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CMainState.h" />
+    <ClInclude Include="SRenderPass.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
