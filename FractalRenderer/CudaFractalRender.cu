@@ -42,6 +42,8 @@ __global__ void HistogramKernel(SPixelState * States, u32 * Histogram, SFractalP
 		Point = cvec2d(Point.X*Point.X - Point.Y*Point.Y + StartPosition.X, 2 * Point.X * Point.Y + StartPosition.Y);
 		++ IterationCounter;
 	}
+	State.Iteration = IterationCounter;
+	State.Point = Point;
 
 	f64 ContinuousIterator = 0;
 	if (IterationCounter < Params.IterationMax)
