@@ -32,8 +32,59 @@ __global__ void HistogramKernel(f64 * Counter, u32 * Histogram, SFractalParams P
 		f64 Nu = log(log(Zn) / log(2.0)) / log(2.0);
 		ContinuousIterator = IterationCounter + 1 - Nu;
 	}
+	else
+		ContinuousIterator = Params.IterationMax;
 	atomicAdd(Histogram + IterationCounter, 1);
 	Counter[PixelCoordinates.Y * Params.ScreenSize.X + PixelCoordinates.X] = ContinuousIterator;
+}
+
+__device__ static void ColorFromHSV(f64 const hue, f64 const saturation, f64 value, u8 & r, u8 & g, u8 & b)
+{
+    int const hi = int(floor(hue / 60)) % 6;
+    double const f = hue / 60 - floor(hue / 60);
+
+    value = value * 255;
+    int v = int(value);
+    int p = int(value * (1 - saturation));
+    int q = int(value * (1 - f * saturation));
+    int t = int(value * (1 - (1 - f) * saturation));
+	
+    if (hi == 0)
+	{
+		r = v;
+		g = t;
+		b = p;
+	}
+    else if (hi == 1)
+	{
+		r = q;
+		g = v;
+		b = p;
+	}
+    else if (hi == 2)
+	{
+		r = p;
+		g = v;
+		b = t;
+	}
+    else if (hi == 3)
+	{
+		r = p;
+		g = q;
+		b = v;
+	}
+    else if (hi == 4)
+	{
+		r = t;
+		g = p;
+		b = v;
+	}
+    else
+	{
+		r = v;
+		g = p;
+		b = q;
+	}
 }
 
 __global__ void DrawKernel(u8 * Image, f64 * Counter, u32 * Histogram, SFractalParams Params)
@@ -42,6 +93,14 @@ __global__ void DrawKernel(u8 * Image, f64 * Counter, u32 * Histogram, SFractalP
 	
 	if (PixelCoordinates.X >= Params.ScreenSize.X || PixelCoordinates.Y >= Params.ScreenSize.Y)
 		return;
+
+	if (Counter[PixelCoordinates.Y * Params.ScreenSize.X + PixelCoordinates.X] == Params.IterationMax)
+	{
+		Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 0] = 0;
+		Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 1] = 0;
+		Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 2] = 0;
+		return;
+	}
 
 	u32 iteration = floor(Counter[PixelCoordinates.Y * Params.ScreenSize.X + PixelCoordinates.X]);
 	f64 total = 0;
@@ -56,9 +115,12 @@ __global__ void DrawKernel(u8 * Image, f64 * Counter, u32 * Histogram, SFractalP
 	f64 delta = Counter[PixelCoordinates.Y * Params.ScreenSize.X + PixelCoordinates.X] - (f64) iteration;
 	hue = hue * (1 - delta) + oneuphue * delta;
 
+	u8 r, g, b;
+	f64 hueit = pow(hue, 8);
+	ColorFromHSV(hueit * 255, 1, 1, r, g, b);
 	Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 0] = 0;
-	Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 1] = (u8) (hue * 255.0);
-	Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 2] = 50;
+	Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 1] = (u8) (hueit * 255);
+	Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 2] = (u8) ((1 - hueit) * 255);
 }
 
 u8 const * CudaRenderFractal(SFractalParams const & Params)
