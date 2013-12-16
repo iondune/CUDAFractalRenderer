@@ -15,6 +15,8 @@ CMainState::CMainState()
 
 void CMainState::Begin()
 {
+	Font.init("Media/OpenSans.ttf", 16);
+
 	glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
 
 	Finalize = CShaderLoader::loadShader("QuadCopyUV.glsl", "Finalize.frag");
@@ -50,6 +52,8 @@ void CMainState::Reset()
 
 void CMainState::Update(f32 const Elapsed)
 {
+	FrameRateCounter.Update(Elapsed);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	SFractalParams Params;
@@ -81,5 +85,7 @@ void CMainState::Update(f32 const Elapsed)
 		Pass.Textures["uColorMap"] = ScreenTextureHandle;
 		Pass.DoPass();
 	}
+	
+	freetype::print(Font, 10, 10, "FPS: %.3f", FrameRateCounter.GetAverage());
 	Application->GetWindow().SwapBuffers();
 }

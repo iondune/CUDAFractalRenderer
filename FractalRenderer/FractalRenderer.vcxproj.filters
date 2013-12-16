@@ -10,6 +10,7 @@
   <ItemGroup>
     <ClInclude Include="CMainState.h" />
     <ClInclude Include="SRenderPass.h" />
+    <ClInclude Include="CFrameRateCounter.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CudaFractalRender.cuh" />

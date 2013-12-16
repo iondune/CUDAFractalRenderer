@@ -75,6 +75,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClCompile Include="SRenderPass.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CFrameRateCounter.h" />
     <ClInclude Include="CMainState.h" />
     <ClInclude Include="SRenderPass.h" />
   </ItemGroup>

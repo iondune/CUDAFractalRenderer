@@ -3,6 +3,8 @@
 
 #include <ionEngine.h>
 #include "CudaFractalRender.cuh"
+#include "CFrameRateCounter.h"
+
 
 enum EFractalType
 {
@@ -37,6 +39,8 @@ class CMainState : public CContextState<CMainState>
 
 	CudaFractalRenderer * FractalRenderer;
 	u32 CudaDrawBufferHandle, ScreenTextureHandle;
+	CFrameRateCounter FrameRateCounter;
+	freetype::font_data Font;
 
 	std::vector<CTexture *> ColorMaps;
 	vec3f uSetColor;
