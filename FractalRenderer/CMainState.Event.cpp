@@ -110,6 +110,7 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 				++ max_iteration;
 				
 			printf("iteration cap: %d\n", max_iteration);
+			Reset();
 				
 			break;
 
@@ -118,6 +119,7 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 			max_iteration /= 2;
 				
 			printf("iteration cap: %d\n", max_iteration);
+			Reset();
 				
 			break;
 				

@@ -35,4 +35,9 @@ public:
 	void Render(void * deviceBuffer, SFractalParams Params);
 	void Reset(SFractalParams const & Params);
 
+	u32 GetIterationMax() const
+	{
+		return IterationMax;
+	}
+
 };
