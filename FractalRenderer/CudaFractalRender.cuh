@@ -13,4 +13,28 @@ struct SFractalParams
 	u32 IterationMax;
 };
 
-u8 const * CudaRenderFractal(SFractalParams const & Params);
+struct SPixelState
+{
+	f64 Counter;
+	cvec2d Point;
+	u32 Iteration;
+	bool Finished;
+};
+
+class CudaFractalRenderer
+{
+	u8 * HostImage;
+	u32 IterationMax;
+
+	u8 * DeviceImage;
+	SPixelState * DeviceStates;
+	u32 * DeviceHistogram;
+
+public:
+
+	CudaFractalRenderer(SFractalParams const & Params);
+	~CudaFractalRenderer();
+	u8 const * Render(SFractalParams Params);
+	void Reset(SFractalParams const & Params);
+
+};

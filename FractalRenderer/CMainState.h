@@ -2,6 +2,7 @@
 #pragma once
 
 #include <ionEngine.h>
+#include "CudaFractalRender.cuh"
 
 enum EFractalType
 {
@@ -34,6 +35,8 @@ class CMainState : public CContextState<CMainState>
 	int CurrentSettings;
 	int CurrentColor;
 
+	CudaFractalRenderer * FractalRenderer;
+
 	std::vector<CTexture *> ColorMaps;
 	vec3f uSetColor;
 	int SetColorCounter;
@@ -58,5 +61,6 @@ public:
 	int max_iteration;
 
 	void PrintLocation();
+	void Reset();
 
 };

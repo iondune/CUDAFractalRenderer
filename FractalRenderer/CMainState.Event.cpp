@@ -14,24 +14,28 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 
 			cY += (CurrentFractal == EFT_BURNING_SHIP ? -1 : 1) * sY * MoveSpeed;
 			PrintLocation();
+			Reset();
 			break;
 
 		case EKey::A:
 
 			cX -= sX * MoveSpeed;
 			PrintLocation();
+			Reset();
 			break;
 
 		case EKey::S:
 
 			cY -= (CurrentFractal == EFT_BURNING_SHIP ? -1 : 1) * sY * MoveSpeed;
 			PrintLocation();
+			Reset();
 			break;
 
 		case EKey::D:
 
 			cX += sX * MoveSpeed;
 			PrintLocation();
+			Reset();
 			break;
 
 		case EKey::Comma:
@@ -69,24 +73,33 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 
 			sX *= 0.5;
 			sY *= 0.5;
+			Reset();
 			break;
 
 		case EKey::X:
 
 			sX *= 2.0;
 			sY *= 2.0;
+			Reset();
 			break;
 
 		case EKey::Q:
 
 			sX *= 0.75;
 			sY *= 0.75;
+			Reset();
 			break;
 
 		case EKey::E:
 
 			sX *= 1.33;
 			sY *= 1.33;
+			Reset();
+			break;
+
+		case EKey::R:
+
+			Reset();
 			break;
 				
 		case EKey::G:
