@@ -42,7 +42,7 @@ void SRenderPass::End()
 	if (! Context)
 		return;
 
-	for (std::map<std::string, CTexture *>::iterator it = Textures.begin(); it != Textures.end(); ++ it)
+	for (std::map<std::string, u32>::iterator it = Textures.begin(); it != Textures.end(); ++ it)
 		Context->bindTexture(it->first, it->second);
 
 	for (std::map<std::string, float>::iterator it = Floats.begin(); it != Floats.end(); ++ it)

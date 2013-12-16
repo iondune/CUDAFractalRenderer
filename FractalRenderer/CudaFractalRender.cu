@@ -109,7 +109,7 @@ __device__ static void ColorFromHSV(f64 const hue, f64 const saturation, f64 val
 	}
 }
 
-__global__ void DrawKernel(u8 * Image, SPixelState * States, u32 * Histogram, SFractalParams Params)
+__global__ void DrawKernel(void * Image, SPixelState * States, u32 * Histogram, SFractalParams Params)
 {
 	cvec2u PixelCoordinates(blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y);
 	
@@ -120,9 +120,10 @@ __global__ void DrawKernel(u8 * Image, SPixelState * States, u32 * Histogram, SF
 
 	if (Counter == Params.IterationMax)
 	{
-		Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 0] = 0;
-		Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 1] = 0;
-		Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 2] = 0;
+		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 0] = 0;
+		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 1] = 0;
+		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 2] = 0;
+		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 3] = 255;
 		return;
 	}
 
@@ -142,21 +143,18 @@ __global__ void DrawKernel(u8 * Image, SPixelState * States, u32 * Histogram, SF
 	u8 r, g, b;
 	f64 hueit = pow(hue, 8);
 	ColorFromHSV(hueit * 255, 1, 1, r, g, b);
-	Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 0] = 0;
-	Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 1] = (u8) (hueit * 255);
-	Image[PixelCoordinates.Y *  Params.ScreenSize.X * 3 + PixelCoordinates.X * 3 + 2] = (u8) ((1 - hueit) * 255);
+	((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 0] = 0;
+	((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 1] = (u8) (hueit * 255);
+	((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 2] = (u8) ((1 - hueit) * 255);
+	((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 3] = 255;
 }
 
 
 CudaFractalRenderer::CudaFractalRenderer(SFractalParams const & Params)
 {
 	u32 const ScreenSize = Params.ScreenSize.X * Params.ScreenSize.Y;
-	u32 const ImageSize = ScreenSize * 3;
 	u32 const StateSize = ScreenSize * sizeof(SPixelState);
 
-	HostImage = new u8[ImageSize];
-
-	cudaMalloc((void**) & DeviceImage, ImageSize);
 	cudaMalloc((void**) & DeviceStates, StateSize);
 
 	DeviceHistogram = 0;
@@ -165,7 +163,6 @@ CudaFractalRenderer::CudaFractalRenderer(SFractalParams const & Params)
 
 CudaFractalRenderer::~CudaFractalRenderer()
 {
-	cudaFree(DeviceImage);
 	cudaFree(DeviceStates);
 	cudaFree(DeviceHistogram);
 }
@@ -189,10 +186,8 @@ void CudaFractalRenderer::Reset(SFractalParams const & Params)
 	IterationMax = 0;
 }
 
-u8 const * CudaFractalRenderer::Render(SFractalParams Params)
+void CudaFractalRenderer::Render(void * deviceBuffer, SFractalParams Params)
 {
-	u32 const ScreenSize = Params.ScreenSize.X * Params.ScreenSize.Y;
-	u32 const ImageSize = ScreenSize * 3;
 	u32 const BlockSize = 16;
 	u32 const IterationIncrement = 1;
 
@@ -204,8 +199,5 @@ u8 const * CudaFractalRenderer::Render(SFractalParams Params)
 	dim3 const Block(BlockSize, BlockSize);
 	Params.IterationMax = IterationMax;
 	HistogramKernel<<<Grid, Block>>>(DeviceStates, DeviceHistogram, Params);
-	DrawKernel<<<Grid, Block>>>(DeviceImage, DeviceStates, DeviceHistogram, Params);
-
-	cudaMemcpy(HostImage, DeviceImage, ImageSize * sizeof(u8), cudaMemcpyDeviceToHost);
-	return HostImage;
+	DrawKernel<<<Grid, Block>>>(deviceBuffer, DeviceStates, DeviceHistogram, Params);
 }

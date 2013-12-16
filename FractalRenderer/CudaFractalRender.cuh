@@ -23,10 +23,8 @@ struct SPixelState
 
 class CudaFractalRenderer
 {
-	u8 * HostImage;
 	u32 IterationMax;
 
-	u8 * DeviceImage;
 	SPixelState * DeviceStates;
 	u32 * DeviceHistogram;
 
@@ -34,7 +32,7 @@ public:
 
 	CudaFractalRenderer(SFractalParams const & Params);
 	~CudaFractalRenderer();
-	u8 const * Render(SFractalParams Params);
+	void Render(void * deviceBuffer, SFractalParams Params);
 	void Reset(SFractalParams const & Params);
 
 };

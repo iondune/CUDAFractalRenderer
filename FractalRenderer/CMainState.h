@@ -36,6 +36,7 @@ class CMainState : public CContextState<CMainState>
 	int CurrentColor;
 
 	CudaFractalRenderer * FractalRenderer;
+	u32 CudaDrawBufferHandle, ScreenTextureHandle;
 
 	std::vector<CTexture *> ColorMaps;
 	vec3f uSetColor;
