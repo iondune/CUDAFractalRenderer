@@ -120,7 +120,7 @@ __global__ void DrawKernel(void * Image, SPixelState * States, u32 * Histogram, 
 	cvec2u PixelCoordinates(blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y);
 	if (PixelCoordinates.X >= Params.ScreenSize.X || PixelCoordinates.Y >= Params.ScreenSize.Y)
 		return;
-	
+
 	SPixelState & State = States[PixelCoordinates.Y * Params.ScreenSize.X + PixelCoordinates.X];
 	u32 const LastMax = State.LastMax;
 	u32 const LastTotal = State.LastTotal;
@@ -152,7 +152,7 @@ __global__ void DrawKernel(void * Image, SPixelState * States, u32 * Histogram, 
 		}
 
 		f64 Average = Sum / (f64) Total;
-		f64 AverageOneUp = Average + Histogram[Iteration] / Total;
+		f64 AverageOneUp = Average + Histogram[Iteration] / (f64) Total;
 		Average = Average * (1 - Delta) + AverageOneUp * Delta;
 
 		f64 const Hue = pow(Average, 8);
@@ -207,19 +207,13 @@ void CudaFractalRenderer::Reset(SFractalParams const & Params)
 	dim3 const Block(BlockSize, BlockSize);
 	InitKernel<<<Grid, Block>>>(DeviceStates, Params);
 
-	IterationMax = 0;
+	IterationMax = 100;
 }
 
 void CudaFractalRenderer::Render(void * deviceBuffer, SFractalParams Params)
 {
 	u32 const BlockSize = 16;
-	u32 IterationIncrement = 1;
-	/*if (IterationMax < 2000)
-		IterationIncrement = 2;
-	if (IterationMax < 1000)
-		IterationIncrement = 5;
-	if (IterationMax < 500)
-		IterationIncrement = 10;*/
+	u32 IterationIncrement = 100;
 	
 	if (IterationMax < Params.IterationMax)
 	{
