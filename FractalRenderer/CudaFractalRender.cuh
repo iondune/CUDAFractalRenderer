@@ -18,7 +18,11 @@ struct SPixelState
 	f64 Counter;
 	cvec2d Point;
 	u32 Iteration;
+	u32 LastMax;
+	u32 LastTotal;
 	bool Finished;
+	u32 FinalSum;
+	bool Calculated;
 };
 
 class CudaFractalRenderer

@@ -17,7 +17,11 @@ __global__ void InitKernel(SPixelState * States,  SFractalParams Params)
 	State.Counter = 0;
 	State.Point = cvec2d();
 	State.Iteration = 0;
+	State.LastMax = 0;
+	State.LastTotal = 0;
+	State.FinalSum = 0;
 	State.Finished = false;
+	State.Calculated = false;
 }
 
 __global__ void HistogramKernel(SPixelState * States, u32 * Histogram, SFractalParams Params)
@@ -114,13 +118,52 @@ __device__ static void ColorFromHSV(f64 const hue, f64 const saturation, f64 val
 __global__ void DrawKernel(void * Image, SPixelState * States, u32 * Histogram, SFractalParams Params)
 {
 	cvec2u PixelCoordinates(blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y);
-	
 	if (PixelCoordinates.X >= Params.ScreenSize.X || PixelCoordinates.Y >= Params.ScreenSize.Y)
 		return;
+	
+	SPixelState & State = States[PixelCoordinates.Y * Params.ScreenSize.X + PixelCoordinates.X];
+	u32 const LastMax = State.LastMax;
+	u32 const LastTotal = State.LastTotal;
 
-	f64 const Counter = States[PixelCoordinates.Y * Params.ScreenSize.X + PixelCoordinates.X].Counter;
+	// Update Total
+	u32 Total = LastTotal;
+	for (u32 i = LastMax; i < Params.IterationMax; ++ i)
+		Total += Histogram[i];
+	State.LastMax = Params.IterationMax;
+	State.LastTotal = Total;
 
-	if (Counter == Params.IterationMax)
+	if (State.Finished)
+	{
+		f64 const Counter = State.Counter;
+		u32 const Iteration = floor(Counter);
+		f64 const Delta = Counter - (f64) Iteration;
+
+		u32 Sum = 0;
+		if (State.Calculated)
+		{
+			Sum = State.FinalSum;
+		}
+		else
+		{
+			for (u32 i = 0; i < Iteration; ++ i)
+				Sum += Histogram[i];
+			State.FinalSum = Sum;
+			State.Calculated = true;
+		}
+
+		f64 Average = Sum / (f64) Total;
+		f64 AverageOneUp = Average + Histogram[Iteration] / Total;
+		Average = Average * (1 - Delta) + AverageOneUp * Delta;
+
+		f64 const Hue = pow(Average, 8);
+		//u8 r, g, b;
+		//ColorFromHSV(Hue * 255, 1, 1, r, g, b);
+		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 0] = 0;
+		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 1] = (u8) (Hue * 255);
+		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 2] = (u8) ((1 - Hue) * 255);
+		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 3] = 255;
+	}
+	else
 	{
 		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 0] = 0;
 		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 1] = 0;
@@ -128,27 +171,6 @@ __global__ void DrawKernel(void * Image, SPixelState * States, u32 * Histogram, 
 		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 3] = 255;
 		return;
 	}
-
-	u32 iteration = floor(Counter);
-	f64 total = 0;
-	for (u32 i = 0; i < Params.IterationMax; ++ i)
-		total += Histogram[i];
-
-	f64 hue = 0;
-	for (u32 i = 0; i < iteration; ++ i)
-		hue += Histogram[i] / total;
-	f64 oneuphue = hue + Histogram[iteration] / total;
-
-	f64 delta = Counter - (f64) iteration;
-	hue = hue * (1 - delta) + oneuphue * delta;
-
-	u8 r, g, b;
-	f64 hueit = pow(hue, 8);
-	ColorFromHSV(hueit * 255, 1, 1, r, g, b);
-	((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 0] = 0;
-	((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 1] = (u8) (hueit * 255);
-	((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 2] = (u8) ((1 - hueit) * 255);
-	((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 3] = 255;
 }
 
 
@@ -191,7 +213,13 @@ void CudaFractalRenderer::Reset(SFractalParams const & Params)
 void CudaFractalRenderer::Render(void * deviceBuffer, SFractalParams Params)
 {
 	u32 const BlockSize = 16;
-	u32 const IterationIncrement = 10;
+	u32 IterationIncrement = 1;
+	/*if (IterationMax < 2000)
+		IterationIncrement = 2;
+	if (IterationMax < 1000)
+		IterationIncrement = 5;
+	if (IterationMax < 500)
+		IterationIncrement = 10;*/
 	
 	if (IterationMax < Params.IterationMax)
 	{
