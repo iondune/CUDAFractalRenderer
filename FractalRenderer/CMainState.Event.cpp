@@ -1,6 +1,7 @@
 
 #include "CMainState.h"
 
+extern u32 IterationIncrement;
 
 void CMainState::OnEvent(SKeyboardEvent & Event)
 {
@@ -119,6 +120,27 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 			max_iteration /= 2;
 				
 			printf("iteration cap: %d\n", max_iteration);
+			Reset();
+				
+			break;
+				
+		case EKey::RightBracket:
+				
+			if (IterationIncrement)
+				IterationIncrement *= 2;
+			else
+				++ IterationIncrement;
+				
+			printf("IterationIncrement: %d\n", IterationIncrement);
+			Reset();
+				
+			break;
+
+		case EKey::LeftBracket:
+				
+			IterationIncrement /= 2;
+				
+			printf("IterationIncrement: %d\n", IterationIncrement);
 			Reset();
 				
 			break;

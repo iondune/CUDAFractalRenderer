@@ -209,11 +209,11 @@ void CudaFractalRenderer::Reset(SFractalParams const & Params)
 
 	IterationMax = 100;
 }
+u32 IterationIncrement = 100;
 
 void CudaFractalRenderer::Render(void * deviceBuffer, SFractalParams Params)
 {
 	u32 const BlockSize = 16;
-	u32 IterationIncrement = 100;
 	
 	if (IterationMax < Params.IterationMax)
 	{
