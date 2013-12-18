@@ -209,22 +209,32 @@ __global__ void FinalKernel(void * Image, SPixelState * States, u32 * Histogram,
 
 void CudaFractalRenderer::Init(cvec2u const & ScreenSize)
 {
-	u32 const ScreenCount = ScreenSize.X * ScreenSize.Y * Params.MultiSample * Params.MultiSample;
-	u32 const StateCount = ScreenCount * sizeof(SPixelState);
-
 	Params.ScreenSize = ScreenSize;
-	Params.Scale.X *= ScreenSize.X / (f64) ScreenSize.Y;
-	IterationIncrement = 100;
-	CheckedCudaCall(cudaMalloc((void**) & DeviceStates, StateCount), "cudaMalloc");
+	Params.Scale.X *= Params.ScreenSize.X / (f64) Params.ScreenSize.Y;
 
-	DeviceHistogram = 0;
-	Reset();
+	DeviceStates = 0;
+	FullReset();
 }
 
 CudaFractalRenderer::~CudaFractalRenderer()
 {
 	cudaFree(DeviceStates);
 	cudaFree(DeviceHistogram);
+}
+
+void CudaFractalRenderer::FullReset()
+{
+	u32 const ScreenCount = Params.ScreenSize.X * Params.ScreenSize.Y * Params.MultiSample * Params.MultiSample;
+	u32 const StateCount = ScreenCount * sizeof(SPixelState);
+
+	IterationIncrement = 100;
+
+	if (DeviceStates)
+		cudaFree(DeviceStates);
+	CheckedCudaCall(cudaMalloc((void**) & DeviceStates, StateCount), "cudaMalloc");
+
+	DeviceHistogram = 0;
+	Reset();
 }
 
 void CudaFractalRenderer::Reset()
@@ -246,7 +256,7 @@ void CudaFractalRenderer::Reset()
 	InitKernel<<<Grid, Block>>>(DeviceStates, Params);
 	CheckCudaResults("init");
 
-	IterationMax = 100;
+	IterationMax = 10;
 }
 
 void CudaFractalRenderer::SoftReset()

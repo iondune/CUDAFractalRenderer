@@ -18,7 +18,7 @@ struct SFractalParams
 		Scale = cvec2d(1, 1);
 		Center = cvec2d(0, 0.7);
 		IterationMax = 1000;
-		MultiSample = 2;
+		MultiSample = 1;
 	}
 };
 
@@ -48,6 +48,7 @@ public:
 	void Init(cvec2u const & ScreenSize);
 	~CudaFractalRenderer();
 	void Render(void * deviceBuffer);
+	void FullReset();
 	void Reset();
 	void SoftReset();
 
