@@ -110,7 +110,7 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 				++ FractalRenderer.Params.IterationMax;
 				
 			printf("iteration cap: %d\n", FractalRenderer.Params.IterationMax);
-			FractalRenderer.Reset();
+			FractalRenderer.SoftReset();
 				
 			break;
 
@@ -131,7 +131,6 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 				++ FractalRenderer.IterationIncrement;
 				
 			printf("IterationIncrement: %d\n", FractalRenderer.IterationIncrement);
-			FractalRenderer.Reset();
 				
 			break;
 
@@ -140,7 +139,6 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 			FractalRenderer.IterationIncrement /= 2;
 				
 			printf("IterationIncrement: %d\n", FractalRenderer.IterationIncrement);
-			FractalRenderer.Reset();
 				
 			break;
 				

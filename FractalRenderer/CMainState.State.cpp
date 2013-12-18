@@ -68,5 +68,6 @@ void CMainState::Update(f32 const Elapsed)
 	
 	freetype::print(Font, 10, 10, "FPS: %.3f", FrameRateCounter.GetAverage());
 	freetype::print(Font, 10, 40, "Max: %d of %d", FractalRenderer.GetIterationMax(), FractalRenderer.Params.IterationMax);
+	freetype::print(Font, 10, 70, "Increment: %d", FractalRenderer.IterationIncrement);
 	Application->GetWindow().SwapBuffers();
 }
