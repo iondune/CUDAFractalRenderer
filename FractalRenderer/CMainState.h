@@ -37,7 +37,7 @@ class CMainState : public CContextState<CMainState>
 	int CurrentSettings;
 	int CurrentColor;
 
-	CudaFractalRenderer * FractalRenderer;
+	CudaFractalRenderer FractalRenderer;
 	u32 CudaDrawBufferHandle, ScreenTextureHandle;
 	CFrameRateCounter FrameRateCounter;
 	freetype::font_data Font;
@@ -61,11 +61,6 @@ public:
 	void OnEvent(SKeyboardEvent & Event);
 	void OnEvent(SMouseEvent & Event);
 
-	double sX, sY;
-	double cX, cY;
-	int max_iteration;
-
 	void PrintLocation();
-	void Reset();
 
 };

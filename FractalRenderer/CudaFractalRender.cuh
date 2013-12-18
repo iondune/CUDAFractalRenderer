@@ -11,6 +11,13 @@ struct SFractalParams
 	cvec2d Center;
 	cvec2d Scale;
 	u32 IterationMax;
+
+	SFractalParams()
+	{
+		Scale = cvec2d(1, 1);
+		Center = cvec2d(0, 0.7);
+		IterationMax = 1000;
+	}
 };
 
 struct SPixelState
@@ -28,20 +35,22 @@ struct SPixelState
 class CudaFractalRenderer
 {
 	u32 IterationMax;
+	u32 HistogramSize;
 
 	SPixelState * DeviceStates;
 	u32 * DeviceHistogram;
 
 public:
 
-	CudaFractalRenderer(SFractalParams const & Params);
+	void Init(cvec2u const & ScreenSize);
 	~CudaFractalRenderer();
-	void Render(void * deviceBuffer, SFractalParams Params);
-	void Reset(SFractalParams const & Params);
+	void Render(void * deviceBuffer);
+	void Reset();
+	void SoftReset();
 
-	u32 GetIterationMax() const
-	{
-		return IterationMax;
-	}
+	u32 GetIterationMax() const;
+
+	SFractalParams Params;
+	u32 IterationIncrement;
 
 };

@@ -174,15 +174,18 @@ __global__ void DrawKernel(void * Image, SPixelState * States, u32 * Histogram, 
 }
 
 
-CudaFractalRenderer::CudaFractalRenderer(SFractalParams const & Params)
+void CudaFractalRenderer::Init(cvec2u const & ScreenSize)
 {
-	u32 const ScreenSize = Params.ScreenSize.X * Params.ScreenSize.Y;
-	u32 const StateSize = ScreenSize * sizeof(SPixelState);
+	u32 const ScreenCount = ScreenSize.X * ScreenSize.Y;
+	u32 const StateCount = ScreenCount * sizeof(SPixelState);
 
-	cudaMalloc((void**) & DeviceStates, StateSize);
+	Params.ScreenSize = ScreenSize;
+	Params.Scale.X *= ScreenSize.X / (f64) ScreenSize.Y;
+	IterationIncrement = 100;
+	cudaMalloc((void**) & DeviceStates, StateCount);
 
 	DeviceHistogram = 0;
-	Reset(Params);
+	Reset();
 }
 
 CudaFractalRenderer::~CudaFractalRenderer()
@@ -191,9 +194,9 @@ CudaFractalRenderer::~CudaFractalRenderer()
 	cudaFree(DeviceHistogram);
 }
 
-void CudaFractalRenderer::Reset(SFractalParams const & Params)
+void CudaFractalRenderer::Reset()
 {
-	u32 const HistogramSize = (Params.IterationMax + 1) * sizeof(u32);
+	HistogramSize = (Params.IterationMax + 1) * sizeof(u32);
 	u32 const BlockSize = 16;
 
 	if (DeviceHistogram)
@@ -209,26 +212,44 @@ void CudaFractalRenderer::Reset(SFractalParams const & Params)
 
 	IterationMax = 100;
 }
-u32 IterationIncrement = 100;
 
-void CudaFractalRenderer::Render(void * deviceBuffer, SFractalParams Params)
+void CudaFractalRenderer::SoftReset()
+{
+	u32 const NewHistogramSize = (Params.IterationMax + 1) * sizeof(u32);
+
+	u32 * NewDeviceHistogram;
+	cudaMalloc((void**) & NewDeviceHistogram, NewHistogramSize);
+	cudaMemset(NewDeviceHistogram, 0, NewHistogramSize);
+	cudaMemcpy(NewDeviceHistogram, DeviceHistogram, HistogramSize, cudaMemcpyDeviceToDevice);
+	cudaFree(DeviceHistogram);
+	DeviceHistogram = NewDeviceHistogram;
+	HistogramSize = NewHistogramSize;
+}
+
+void CudaFractalRenderer::Render(void * deviceBuffer)
 {
 	u32 const BlockSize = 16;
-	
-	if (IterationMax < Params.IterationMax)
+	SFractalParams ParamsCopy = Params;
+
+	if (IterationMax < ParamsCopy.IterationMax)
 	{
-		IterationMax = Min(IterationMax + IterationIncrement, Params.IterationMax);
+		IterationMax = Min(IterationMax + IterationIncrement, ParamsCopy.IterationMax);
 
 		dim3 const Grid(
-			Params.ScreenSize.X / BlockSize + (Params.ScreenSize.X % BlockSize ? 1 : 0), 
-			Params.ScreenSize.Y / BlockSize + (Params.ScreenSize.Y % BlockSize ? 1 : 0));
+			ParamsCopy.ScreenSize.X / BlockSize + (ParamsCopy.ScreenSize.X % BlockSize ? 1 : 0), 
+			ParamsCopy.ScreenSize.Y / BlockSize + (ParamsCopy.ScreenSize.Y % BlockSize ? 1 : 0));
 		dim3 const Block(BlockSize, BlockSize);
 
-		if (IterationMax <= Params.IterationMax)
+		if (IterationMax <= ParamsCopy.IterationMax)
 		{
-			Params.IterationMax = IterationMax;
-			HistogramKernel<<<Grid, Block>>>(DeviceStates, DeviceHistogram, Params);
-			DrawKernel<<<Grid, Block>>>(deviceBuffer, DeviceStates, DeviceHistogram, Params);
+			ParamsCopy.IterationMax = IterationMax;
+			HistogramKernel<<<Grid, Block>>>(DeviceStates, DeviceHistogram, ParamsCopy);
+			DrawKernel<<<Grid, Block>>>(deviceBuffer, DeviceStates, DeviceHistogram, ParamsCopy);
 		}
 	}
+}
+
+u32 CudaFractalRenderer::GetIterationMax() const
+{
+	return IterationMax;
 }

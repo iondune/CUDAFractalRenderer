@@ -1,7 +1,6 @@
 
 #include "CMainState.h"
 
-extern u32 IterationIncrement;
 
 void CMainState::OnEvent(SKeyboardEvent & Event)
 {
@@ -13,30 +12,30 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 
 		case EKey::W:
 
-			cY += (CurrentFractal == EFT_BURNING_SHIP ? -1 : 1) * sY * MoveSpeed;
+			FractalRenderer.Params.Center.Y += (CurrentFractal == EFT_BURNING_SHIP ? -1 : 1) * FractalRenderer.Params.Scale.Y * MoveSpeed;
 			PrintLocation();
-			Reset();
+			FractalRenderer.Reset();
 			break;
 
 		case EKey::A:
 
-			cX -= sX * MoveSpeed;
+			FractalRenderer.Params.Center.X -= FractalRenderer.Params.Scale.X * MoveSpeed;
 			PrintLocation();
-			Reset();
+			FractalRenderer.Reset();
 			break;
 
 		case EKey::S:
 
-			cY -= (CurrentFractal == EFT_BURNING_SHIP ? -1 : 1) * sY * MoveSpeed;
+			FractalRenderer.Params.Center.Y -= (CurrentFractal == EFT_BURNING_SHIP ? -1 : 1) * FractalRenderer.Params.Scale.Y * MoveSpeed;
 			PrintLocation();
-			Reset();
+			FractalRenderer.Reset();
 			break;
 
 		case EKey::D:
 
-			cX += sX * MoveSpeed;
+			FractalRenderer.Params.Center.X += FractalRenderer.Params.Scale.X * MoveSpeed;
 			PrintLocation();
-			Reset();
+			FractalRenderer.Reset();
 			break;
 
 		case EKey::Comma:
@@ -72,76 +71,76 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 
 		case EKey::Z:
 
-			sX *= 0.5;
-			sY *= 0.5;
-			Reset();
+			FractalRenderer.Params.Scale.X *= 0.5;
+			FractalRenderer.Params.Scale.Y *= 0.5;
+			FractalRenderer.Reset();
 			break;
 
 		case EKey::X:
 
-			sX *= 2.0;
-			sY *= 2.0;
-			Reset();
+			FractalRenderer.Params.Scale.X *= 2.0;
+			FractalRenderer.Params.Scale.Y *= 2.0;
+			FractalRenderer.Reset();
 			break;
 
 		case EKey::Q:
 
-			sX *= 0.75;
-			sY *= 0.75;
-			Reset();
+			FractalRenderer.Params.Scale.X *= 0.75;
+			FractalRenderer.Params.Scale.Y *= 0.75;
+			FractalRenderer.Reset();
 			break;
 
 		case EKey::E:
 
-			sX *= 1.33;
-			sY *= 1.33;
-			Reset();
+			FractalRenderer.Params.Scale.X *= 1.33;
+			FractalRenderer.Params.Scale.Y *= 1.33;
+			FractalRenderer.Reset();
 			break;
 
 		case EKey::R:
 
-			Reset();
+			FractalRenderer.Reset();
 			break;
 				
 		case EKey::G:
 				
-			if (max_iteration)
-				max_iteration *= 2;
+			if (FractalRenderer.Params.IterationMax)
+				FractalRenderer.Params.IterationMax *= 2;
 			else
-				++ max_iteration;
+				++ FractalRenderer.Params.IterationMax;
 				
-			printf("iteration cap: %d\n", max_iteration);
-			Reset();
+			printf("iteration cap: %d\n", FractalRenderer.Params.IterationMax);
+			FractalRenderer.Reset();
 				
 			break;
 
 		case EKey::B:
 				
-			max_iteration /= 2;
+			FractalRenderer.Params.IterationMax /= 2;
 				
-			printf("iteration cap: %d\n", max_iteration);
-			Reset();
+			printf("iteration cap: %d\n", FractalRenderer.Params.IterationMax);
+			FractalRenderer.Reset();
 				
 			break;
 				
 		case EKey::RightBracket:
 				
-			if (IterationIncrement)
-				IterationIncrement *= 2;
+			if (FractalRenderer.IterationIncrement)
+				FractalRenderer.IterationIncrement *= 2;
 			else
-				++ IterationIncrement;
+				++ FractalRenderer.IterationIncrement;
 				
-			printf("IterationIncrement: %d\n", IterationIncrement);
-			Reset();
+			printf("IterationIncrement: %d\n", FractalRenderer.IterationIncrement);
+			FractalRenderer.Reset();
 				
 			break;
 
 		case EKey::LeftBracket:
 				
-			IterationIncrement /= 2;
+			FractalRenderer.IterationIncrement /= 2;
 				
-			printf("IterationIncrement: %d\n", IterationIncrement);
-			Reset();
+			printf("IterationIncrement: %d\n", FractalRenderer.IterationIncrement);
+			FractalRenderer.Reset();
 				
 			break;
 				
