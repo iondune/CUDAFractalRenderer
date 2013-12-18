@@ -156,11 +156,11 @@ __global__ void DrawKernel(void * Image, SPixelState * States, u32 * Histogram, 
 		Average = Average * (1 - Delta) + AverageOneUp * Delta;
 
 		f64 const Hue = pow(Average, 8);
-		//u8 r, g, b;
-		//ColorFromHSV(Hue * 255, 1, 1, r, g, b);
-		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 0] = 0;
-		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 1] = (u8) (Hue * 255);
-		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 2] = (u8) ((1 - Hue) * 255);
+		u8 r, g, b;
+		ColorFromHSV(Hue * 255, 1, 1, r, g, b);
+		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 0] = r;//0;
+		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 1] = g;//(u8) (Hue * 255);
+		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 2] = b;//(u8) ((1 - Hue) * 255);
 		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 3] = 255;
 	}
 	else

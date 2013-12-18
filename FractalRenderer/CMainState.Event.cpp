@@ -10,6 +10,11 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 		switch (Event.Key)
 		{
 
+		case EKey::Escape:
+
+			Application->Close();
+			break;
+
 		case EKey::W:
 
 			FractalRenderer.Params.Center.Y += (CurrentFractal == EFT_BURNING_SHIP ? -1 : 1) * FractalRenderer.Params.Scale.Y * MoveSpeed;
