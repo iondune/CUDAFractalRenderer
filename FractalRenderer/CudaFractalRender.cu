@@ -41,7 +41,7 @@ __global__ void HistogramKernel(SPixelState * States, u32 * Histogram, SFractalP
 
 	cvec2d Point = State.Point;
 	u32 IterationCounter = State.Iteration;
-	cvec2d StartPosition(PixelCoordinates.X / (f64) Params.ScreenSize.X, PixelCoordinates.Y / (f64) Params.ScreenSize.Y);
+	cvec2d StartPosition(PixelCoordinates.X / (f64) MSWidth, PixelCoordinates.Y / (f64) MSHeight);
 	StartPosition -= 0.5;
 	StartPosition *= Params.Scale;
 	StartPosition += Params.Center;
