@@ -10,6 +10,7 @@ struct SFractalParams
 	cvec2u ScreenSize;
 	cvec2d Center;
 	cvec2d Scale;
+	u32 MultiSample;
 	u32 IterationMax;
 
 	SFractalParams()
@@ -17,6 +18,7 @@ struct SFractalParams
 		Scale = cvec2d(1, 1);
 		Center = cvec2d(0, 0.7);
 		IterationMax = 1000;
+		MultiSample = 2;
 	}
 };
 
@@ -30,6 +32,7 @@ struct SPixelState
 	bool Finished;
 	u32 FinalSum;
 	bool Calculated;
+	f64 R, G, B;
 };
 
 class CudaFractalRenderer

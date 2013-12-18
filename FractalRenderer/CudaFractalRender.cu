@@ -5,15 +5,16 @@
 #include <ionCore/ionUtils.h>
 
 
-
-
 __global__ void InitKernel(SPixelState * States,  SFractalParams Params)
 {
+	u32 const MSWidth = Params.ScreenSize.X * Params.MultiSample;
+	u32 const MSHeight = Params.ScreenSize.Y * Params.MultiSample;
+
 	cvec2u PixelCoordinates(blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y);
-	if (PixelCoordinates.X >= Params.ScreenSize.X || PixelCoordinates.Y >= Params.ScreenSize.Y)
+	if (PixelCoordinates.X >= MSWidth || PixelCoordinates.Y >= MSHeight)
 		return;
 
-	SPixelState & State = States[PixelCoordinates.Y * Params.ScreenSize.X + PixelCoordinates.X];
+	SPixelState & State = States[PixelCoordinates.Y * MSWidth + PixelCoordinates.X];
 	State.Counter = 0;
 	State.Point = cvec2d();
 	State.Iteration = 0;
@@ -22,15 +23,19 @@ __global__ void InitKernel(SPixelState * States,  SFractalParams Params)
 	State.FinalSum = 0;
 	State.Finished = false;
 	State.Calculated = false;
+	State.R = State.G = State.B = 0;
 }
 
 __global__ void HistogramKernel(SPixelState * States, u32 * Histogram, SFractalParams Params)
 {
-	cvec2u PixelCoordinates(blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y);
-	if (PixelCoordinates.X >= Params.ScreenSize.X || PixelCoordinates.Y >= Params.ScreenSize.Y)
-		return;
+	u32 const MSWidth = Params.ScreenSize.X * Params.MultiSample;
+	u32 const MSHeight = Params.ScreenSize.Y * Params.MultiSample;
 
-	SPixelState & State = States[PixelCoordinates.Y * Params.ScreenSize.X + PixelCoordinates.X];
+	cvec2u PixelCoordinates(blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y);
+	if (PixelCoordinates.X >= MSWidth || PixelCoordinates.Y >= MSHeight)
+		return;
+	
+	SPixelState & State = States[PixelCoordinates.Y * MSWidth + PixelCoordinates.X];
 	if (State.Finished)
 		return;
 
@@ -117,11 +122,14 @@ __device__ static void ColorFromHSV(f64 const hue, f64 const saturation, f64 val
 
 __global__ void DrawKernel(void * Image, SPixelState * States, u32 * Histogram, SFractalParams Params)
 {
-	cvec2u PixelCoordinates(blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y);
-	if (PixelCoordinates.X >= Params.ScreenSize.X || PixelCoordinates.Y >= Params.ScreenSize.Y)
-		return;
+	u32 const MSWidth = Params.ScreenSize.X * Params.MultiSample;
+	u32 const MSHeight = Params.ScreenSize.Y * Params.MultiSample;
 
-	SPixelState & State = States[PixelCoordinates.Y * Params.ScreenSize.X + PixelCoordinates.X];
+	cvec2u PixelCoordinates(blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y);
+	if (PixelCoordinates.X >= MSWidth || PixelCoordinates.Y >= MSHeight)
+		return;
+	
+	SPixelState & State = States[PixelCoordinates.Y * MSWidth + PixelCoordinates.X];
 	u32 const LastMax = State.LastMax;
 	u32 const LastTotal = State.LastTotal;
 
@@ -158,31 +166,56 @@ __global__ void DrawKernel(void * Image, SPixelState * States, u32 * Histogram, 
 		f64 const Hue = pow(Average, 8);
 		u8 r, g, b;
 		ColorFromHSV(Hue * 255, 1, 1, r, g, b);
-		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 0] = r;//0;
-		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 1] = g;//(u8) (Hue * 255);
-		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 2] = b;//(u8) ((1 - Hue) * 255);
-		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 3] = 255;
+		State.R = r;
+		State.G = g;
+		State.B = b;
 	}
 	else
 	{
-		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 0] = 0;
-		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 1] = 0;
-		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 2] = 0;
-		((u8 *) Image)[PixelCoordinates.Y *  Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 3] = 255;
+		State.R = State.G = State.B = 0;
 		return;
 	}
 }
 
+__global__ void FinalKernel(void * Image, SPixelState * States, u32 * Histogram, SFractalParams Params)
+{
+	cvec2u PixelCoordinates(blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y);
+	if (PixelCoordinates.X >= Params.ScreenSize.X || PixelCoordinates.Y >= Params.ScreenSize.Y)
+		return;
+	
+	f64 R = 0, G = 0, B = 0;
+	for (u32 y = 0; y < Params.MultiSample; ++ y)
+	for (u32 x = 0; x < Params.MultiSample; ++ x)
+	{
+		SPixelState & State = States[
+			PixelCoordinates.Y * Params.MultiSample * Params.ScreenSize.X * Params.MultiSample +
+			PixelCoordinates.X * Params.MultiSample +
+			y * Params.ScreenSize.X * Params.MultiSample +
+			x];
+		R += State.R;
+		G += State.G;
+		B += State.B;
+	}
+	
+	R /= Params.MultiSample * Params.MultiSample;
+	G /= Params.MultiSample * Params.MultiSample;
+	B /= Params.MultiSample * Params.MultiSample;
+
+	((u8 *) Image)[PixelCoordinates.Y * Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 0] = R;
+	((u8 *) Image)[PixelCoordinates.Y * Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 1] = G;
+	((u8 *) Image)[PixelCoordinates.Y * Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 2] = B;
+	((u8 *) Image)[PixelCoordinates.Y * Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 3] = 255;
+}
 
 void CudaFractalRenderer::Init(cvec2u const & ScreenSize)
 {
-	u32 const ScreenCount = ScreenSize.X * ScreenSize.Y;
+	u32 const ScreenCount = ScreenSize.X * ScreenSize.Y * Params.MultiSample * Params.MultiSample;
 	u32 const StateCount = ScreenCount * sizeof(SPixelState);
 
 	Params.ScreenSize = ScreenSize;
 	Params.Scale.X *= ScreenSize.X / (f64) ScreenSize.Y;
 	IterationIncrement = 100;
-	cudaMalloc((void**) & DeviceStates, StateCount);
+	CheckedCudaCall(cudaMalloc((void**) & DeviceStates, StateCount), "cudaMalloc");
 
 	DeviceHistogram = 0;
 	Reset();
@@ -198,17 +231,20 @@ void CudaFractalRenderer::Reset()
 {
 	HistogramSize = (Params.IterationMax + 1) * sizeof(u32);
 	u32 const BlockSize = 16;
+	u32 const MSWidth = Params.ScreenSize.X * Params.MultiSample;
+	u32 const MSHeight = Params.ScreenSize.Y * Params.MultiSample;
 
 	if (DeviceHistogram)
 		cudaFree(DeviceHistogram);
-	cudaMalloc((void**) & DeviceHistogram, HistogramSize);
-	cudaMemset(DeviceHistogram, 0, HistogramSize);
+	CheckedCudaCall(cudaMalloc((void**) & DeviceHistogram, HistogramSize), "cudaMalloc");
+	CheckedCudaCall(cudaMemset(DeviceHistogram, 0, HistogramSize), "cudaMemset");
 
 	dim3 const Grid(
-		Params.ScreenSize.X / BlockSize + (Params.ScreenSize.X % BlockSize ? 1 : 0), 
-		Params.ScreenSize.Y / BlockSize + (Params.ScreenSize.Y % BlockSize ? 1 : 0));
+		MSWidth / BlockSize + (MSWidth % BlockSize ? 1 : 0), 
+		MSHeight / BlockSize + (MSHeight % BlockSize ? 1 : 0));
 	dim3 const Block(BlockSize, BlockSize);
 	InitKernel<<<Grid, Block>>>(DeviceStates, Params);
+	CheckCudaResults("init");
 
 	IterationMax = 100;
 }
@@ -235,16 +271,27 @@ void CudaFractalRenderer::Render(void * deviceBuffer)
 	{
 		IterationMax = Min(IterationMax + IterationIncrement, ParamsCopy.IterationMax);
 
-		dim3 const Grid(
-			ParamsCopy.ScreenSize.X / BlockSize + (ParamsCopy.ScreenSize.X % BlockSize ? 1 : 0), 
-			ParamsCopy.ScreenSize.Y / BlockSize + (ParamsCopy.ScreenSize.Y % BlockSize ? 1 : 0));
-		dim3 const Block(BlockSize, BlockSize);
-
 		if (IterationMax <= ParamsCopy.IterationMax)
 		{
 			ParamsCopy.IterationMax = IterationMax;
-			HistogramKernel<<<Grid, Block>>>(DeviceStates, DeviceHistogram, ParamsCopy);
-			DrawKernel<<<Grid, Block>>>(deviceBuffer, DeviceStates, DeviceHistogram, ParamsCopy);
+			{
+				dim3 const Grid(
+					ParamsCopy.ScreenSize.X * Params.MultiSample / BlockSize + (ParamsCopy.ScreenSize.X * Params.MultiSample % BlockSize ? 1 : 0), 
+					ParamsCopy.ScreenSize.Y * Params.MultiSample / BlockSize + (ParamsCopy.ScreenSize.Y * Params.MultiSample % BlockSize ? 1 : 0));
+				dim3 const Block(BlockSize, BlockSize);
+				HistogramKernel<<<Grid, Block>>>(DeviceStates, DeviceHistogram, ParamsCopy);
+				CheckCudaResults("histogram");
+				DrawKernel<<<Grid, Block>>>(deviceBuffer, DeviceStates, DeviceHistogram, ParamsCopy);
+				CheckCudaResults("draw");
+			}
+			{
+				dim3 const Grid(
+					ParamsCopy.ScreenSize.X / BlockSize + (ParamsCopy.ScreenSize.X % BlockSize ? 1 : 0), 
+					ParamsCopy.ScreenSize.Y / BlockSize + (ParamsCopy.ScreenSize.Y % BlockSize ? 1 : 0));
+				dim3 const Block(BlockSize, BlockSize);
+				FinalKernel<<<Grid, Block>>>(deviceBuffer, DeviceStates, DeviceHistogram, ParamsCopy);
+				CheckCudaResults("clear");
+			}
 		}
 	}
 }
