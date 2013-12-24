@@ -63,11 +63,10 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 		case EKey::Num2:
 		case EKey::Num3:
 		case EKey::Num4:
-		case EKey::Num5:
 
 			CurrentSettings = (int) Event.Key - (int) EKey::Num1 + 1;
 			std::cout << "Multisample: " << CurrentSettings << std::endl;
-			FractalRenderer.Params.MultiSample = Clamp(CurrentSettings, 1, 5);
+			FractalRenderer.Params.MultiSample = Clamp(CurrentSettings, 1, 4);
 			FractalRenderer.FullReset();
 			break;
 
