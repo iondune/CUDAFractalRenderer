@@ -32,7 +32,7 @@ struct SPixelState
 	bool Finished;
 	u32 FinalSum;
 	bool Calculated;
-	f64 R, G, B;
+	u8 R, G, B;
 };
 
 class CudaFractalRenderer
