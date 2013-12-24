@@ -36,6 +36,7 @@ class CMainState : public CContextState<CMainState>
 	int CurrentFractal;
 	int CurrentSettings;
 	int CurrentColor;
+	bool DumpFrames;
 
 	CudaFractalRenderer FractalRenderer;
 	u32 CudaDrawBufferHandle, ScreenTextureHandle;

@@ -8,7 +8,8 @@
 
 CMainState::CMainState()
 	: uSetColor(0.0f), ScaleFactor(1), TextureScaling(1.f),
-	CurrentFractal(EFT_MANDEL), CurrentSettings(ESS_DEFAULT), CurrentColor(0), SetColorCounter(0)
+	CurrentFractal(EFT_MANDEL), CurrentSettings(ESS_DEFAULT), CurrentColor(0), SetColorCounter(0),
+	DumpFrames(false)
 {}
 
 void CMainState::Begin()
@@ -64,6 +65,26 @@ void CMainState::Update(f32 const Elapsed)
 	{
 		Pass.Textures["uColorMap"] = ScreenTextureHandle;
 		Pass.DoPass();
+	}
+
+	// Dump Frame
+	if (DumpFrames)
+	{
+		u32 const FrameWidth = Application->GetWindow().GetSize().X;
+		u32 const FrameHeight = Application->GetWindow().GetSize().Y;
+		unsigned char * ImageData = new unsigned char[FrameWidth * FrameHeight * 3];
+
+		static u32 Counter = 0;
+		glReadPixels(0, 0, FrameWidth, FrameHeight, GL_RGB, GL_UNSIGNED_BYTE, ImageData);
+		CImage * Image = new CImage(ImageData, FrameWidth, FrameHeight, false);
+		std::stringstream Stream;
+		Stream << "OutputImages/";
+		Stream << std::setw(5) << std::setfill('0') << Counter++;
+		Stream << ".bmp";
+		Image->Write(Stream.str());
+		delete Image;
+		if (FractalRenderer.GetIterationMax() == FractalRenderer.Params.IterationMax)
+			DumpFrames = false;
 	}
 	
 	freetype::print(Font, 10, 10, "FPS: %.3f", FrameRateCounter.GetAverage());

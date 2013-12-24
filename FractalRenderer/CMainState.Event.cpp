@@ -43,6 +43,12 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 			FractalRenderer.Reset();
 			break;
 
+		case EKey::BackSlash:
+
+			DumpFrames = true;
+			FractalRenderer.Reset();
+			break;
+
 		case EKey::Comma:
 
 			++ CurrentFractal;
