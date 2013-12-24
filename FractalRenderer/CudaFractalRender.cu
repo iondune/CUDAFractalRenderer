@@ -231,6 +231,7 @@ void CudaFractalRenderer::FullReset()
 
 	if (DeviceStates)
 		cudaFree(DeviceStates);
+	printf("Attempting to allocate %d bytes of space on GPU (%.2f GB).\n", StateCount, StateCount / 1000.0 / 1000.0 / 1000.0);
 	CheckedCudaCall(cudaMalloc((void**) & DeviceStates, StateCount), "cudaMalloc");
 
 	DeviceHistogram = 0;
