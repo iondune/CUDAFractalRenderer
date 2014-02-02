@@ -3,20 +3,35 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="CMainState.Event.cpp" />
-    <ClCompile Include="SRenderPass.cpp" />
     <ClCompile Include="CMainState.cpp" />
+    <ClCompile Include="SRenderPass.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CMainState.h" />
-    <ClInclude Include="SRenderPass.h" />
-    <ClInclude Include="CFrameRateCounter.h" />
+    <ClInclude Include="SRenderPass.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="CFrameRateCounter.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CudaFractalRender.cuh" />
-    <None Include="CudaVec2.cuh" />
-    <None Include="CudaUtils.cuh" />
+    <None Include="CudaVec2.cuh">
+      <Filter>Utilities</Filter>
+    </None>
+    <None Include="CudaUtils.cuh">
+      <Filter>Utilities</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="CudaFractalRender.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Utilities">
+      <UniqueIdentifier>{dc7198eb-427a-41dd-a36e-99c203bfc5ca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>
