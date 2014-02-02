@@ -11,7 +11,7 @@ int main(int argc, char * argv[])
 	CShaderLoader::ShaderDirectory = "Shaders/";
 	CImageLoader::ImageDirectory   = "Media/";
 	CMeshLoader::MeshDirectory     = "Media/";
-	
+
 	CApplication & Application = CApplication::Get();
 	Application.Init(ScreenSize, "Fractal Renderer", false);
 	Application.GetSceneManager().init(true, true);

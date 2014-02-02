@@ -9,7 +9,7 @@ SRenderPass::SRenderPass()
 {
 	if (! QuadHandle)
 	{
-		GLfloat QuadVertices[] = 
+		GLfloat QuadVertices[] =
 		{
 			-1.0, -1.0,
 			 1.0, -1.0,
@@ -28,7 +28,7 @@ void SRenderPass::Begin()
 	if (! Shader)
 		return;
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_DEPTH_TEST);
 
 	Context = new CShaderContext(* Shader);

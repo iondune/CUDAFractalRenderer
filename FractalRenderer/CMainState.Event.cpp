@@ -92,44 +92,44 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 
 			FractalRenderer.Reset();
 			break;
-				
+
 		case EKey::G:
-				
+
 			if (FractalRenderer.Params.IterationMax)
 				FractalRenderer.Params.IterationMax *= 2;
 			else
 				++ FractalRenderer.Params.IterationMax;
-				
+
 			printf("iteration cap: %d\n", FractalRenderer.Params.IterationMax);
 			FractalRenderer.SoftReset();
-				
+
 			break;
 
 		case EKey::B:
-				
+
 			FractalRenderer.Params.IterationMax /= 2;
-				
+
 			printf("iteration cap: %d\n", FractalRenderer.Params.IterationMax);
 			FractalRenderer.Reset();
-				
+
 			break;
-				
+
 		case EKey::RightBracket:
-				
+
 			if (FractalRenderer.IterationIncrement)
 				FractalRenderer.IterationIncrement *= 2;
 			else
 				++ FractalRenderer.IterationIncrement;
-				
+
 			printf("IterationIncrement: %d\n", FractalRenderer.IterationIncrement);
-				
+
 			break;
 
 		case EKey::LeftBracket:
-				
+
 			FractalRenderer.IterationIncrement /= 2;
 			printf("IterationIncrement: %d\n", FractalRenderer.IterationIncrement);
-				
+
 			break;
 
 		case EKey::U:
@@ -147,7 +147,7 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 				CurrentColor = ColorMaps.size() - 1;
 
 			break;
-				
+
 		}
 	}
 }

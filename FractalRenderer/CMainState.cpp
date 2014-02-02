@@ -42,7 +42,7 @@ void CMainState::Update(f32 const Elapsed)
 	FrameRateCounter.Update(Elapsed);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+
 	// Render data into CUDA buffer
 	void * deviceBuffer;
 	cudaGLMapBufferObject(& deviceBuffer, CudaDrawBufferHandle);

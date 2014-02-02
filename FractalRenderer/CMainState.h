@@ -31,7 +31,7 @@ public:
 
 	void DumpFrameToFile();
 	void PrintTextOverlay();
-	
+
 	void OnEvent(SKeyboardEvent & Event);
 	void OnEvent(SMouseEvent & Event);
 

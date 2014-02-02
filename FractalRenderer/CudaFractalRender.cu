@@ -31,7 +31,7 @@ __global__ void HistogramKernel(SPixelState * States, u32 * Histogram, SFractalP
 	cvec2u PixelCoordinates(blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y);
 	if (PixelCoordinates.X >= MSWidth || PixelCoordinates.Y >= MSHeight)
 		return;
-	
+
 	SPixelState & State = States[PixelCoordinates.Y * MSWidth + PixelCoordinates.X];
 	if (State.Finished)
 		return;
@@ -78,7 +78,7 @@ __device__ static void ColorFromHSV(f64 const hue, f64 const saturation, f64 val
     int p = int(value * (1 - saturation));
     int q = int(value * (1 - f * saturation));
     int t = int(value * (1 - (1 - f) * saturation));
-	
+
     if (hi == 0)
 	{
 		r = v;
@@ -125,7 +125,7 @@ __global__ void DrawKernel(void * Image, SPixelState * States, u32 * Histogram, 
 	cvec2u PixelCoordinates(blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y);
 	if (PixelCoordinates.X >= MSWidth || PixelCoordinates.Y >= MSHeight)
 		return;
-	
+
 	SPixelState & State = States[PixelCoordinates.Y * MSWidth + PixelCoordinates.X];
 	u32 const LastMax = State.LastMax;
 	u32 const LastTotal = State.LastTotal;
@@ -179,7 +179,7 @@ __global__ void FinalKernel(void * Image, SPixelState * States, u32 * Histogram,
 	cvec2u PixelCoordinates(blockIdx.x * blockDim.x + threadIdx.x, blockIdx.y * blockDim.y + threadIdx.y);
 	if (PixelCoordinates.X >= Params.ScreenSize.X || PixelCoordinates.Y >= Params.ScreenSize.Y)
 		return;
-	
+
 	f64 R = 0, G = 0, B = 0;
 	for (u32 y = 0; y < Params.MultiSample; ++ y)
 	for (u32 x = 0; x < Params.MultiSample; ++ x)
@@ -193,7 +193,7 @@ __global__ void FinalKernel(void * Image, SPixelState * States, u32 * Histogram,
 		G += State.G;
 		B += State.B;
 	}
-	
+
 	R /= Params.MultiSample * Params.MultiSample;
 	G /= Params.MultiSample * Params.MultiSample;
 	B /= Params.MultiSample * Params.MultiSample;
@@ -248,7 +248,7 @@ void CudaFractalRenderer::Reset()
 	CheckedCudaCall(cudaMemset(DeviceHistogram, 0, HistogramSize), "cudaMemset");
 
 	dim3 const Grid(
-		MSWidth / BlockSize + (MSWidth % BlockSize ? 1 : 0), 
+		MSWidth / BlockSize + (MSWidth % BlockSize ? 1 : 0),
 		MSHeight / BlockSize + (MSHeight % BlockSize ? 1 : 0));
 	dim3 const Block(BlockSize, BlockSize);
 	InitKernel<<<Grid, Block>>>(DeviceStates, Params);
@@ -284,7 +284,7 @@ void CudaFractalRenderer::Render(void * deviceBuffer)
 			ParamsCopy.IterationMax = IterationMax;
 			{
 				dim3 const Grid(
-					ParamsCopy.ScreenSize.X * Params.MultiSample / BlockSize + (ParamsCopy.ScreenSize.X * Params.MultiSample % BlockSize ? 1 : 0), 
+					ParamsCopy.ScreenSize.X * Params.MultiSample / BlockSize + (ParamsCopy.ScreenSize.X * Params.MultiSample % BlockSize ? 1 : 0),
 					ParamsCopy.ScreenSize.Y * Params.MultiSample / BlockSize + (ParamsCopy.ScreenSize.Y * Params.MultiSample % BlockSize ? 1 : 0));
 				dim3 const Block(BlockSize, BlockSize);
 				HistogramKernel<<<Grid, Block>>>(DeviceStates, DeviceHistogram, ParamsCopy);
@@ -294,7 +294,7 @@ void CudaFractalRenderer::Render(void * deviceBuffer)
 			}
 			{
 				dim3 const Grid(
-					ParamsCopy.ScreenSize.X / BlockSize + (ParamsCopy.ScreenSize.X % BlockSize ? 1 : 0), 
+					ParamsCopy.ScreenSize.X / BlockSize + (ParamsCopy.ScreenSize.X % BlockSize ? 1 : 0),
 					ParamsCopy.ScreenSize.Y / BlockSize + (ParamsCopy.ScreenSize.Y % BlockSize ? 1 : 0));
 				dim3 const Block(BlockSize, BlockSize);
 				FinalKernel<<<Grid, Block>>>(deviceBuffer, DeviceStates, DeviceHistogram, ParamsCopy);
