@@ -3,9 +3,8 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="CMainState.Event.cpp" />
-    <ClCompile Include="CMainState.State.cpp" />
     <ClCompile Include="SRenderPass.cpp" />
-    <ClCompile Include="CMainState.Fractal.cpp" />
+    <ClCompile Include="CMainState.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CMainState.h" />

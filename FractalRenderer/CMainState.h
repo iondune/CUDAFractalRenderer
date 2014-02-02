@@ -10,7 +10,9 @@ class CMainState : public CContextState<CMainState>
 {
 	CShader * Finalize;
 	CTexture * CopyTexture;
+
 	bool DumpFrames;
+	int CurrentDumpFrame;
 
 	CudaFractalRenderer FractalRenderer;
 	u32 CudaDrawBufferHandle, ScreenTextureHandle;
@@ -26,6 +28,9 @@ public:
 	CMainState();
 	void Begin();
 	void Update(f32 const Elapsed);
+
+	void DumpFrameToFile();
+	void PrintTextOverlay();
 	
 	void OnEvent(SKeyboardEvent & Event);
 	void OnEvent(SMouseEvent & Event);

@@ -128,7 +128,6 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 		case EKey::LeftBracket:
 				
 			FractalRenderer.IterationIncrement /= 2;
-				
 			printf("IterationIncrement: %d\n", FractalRenderer.IterationIncrement);
 				
 			break;

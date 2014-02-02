@@ -69,8 +69,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CMainState.Event.cpp" />
-    <ClCompile Include="CMainState.Fractal.cpp" />
-    <ClCompile Include="CMainState.State.cpp" />
+    <ClCompile Include="CMainState.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="SRenderPass.cpp" />
   </ItemGroup>

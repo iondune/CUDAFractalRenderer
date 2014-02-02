@@ -7,7 +7,7 @@
 
 
 CMainState::CMainState()
-	: CurrentColor(0), DumpFrames(false)
+	: CurrentColor(0), DumpFrames(false), CurrentDumpFrame(0)
 {}
 
 void CMainState::Begin()
@@ -43,16 +43,16 @@ void CMainState::Update(f32 const Elapsed)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	// Bind OpenGL screen texture
-	glEnable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, ScreenTextureHandle);
-
 	// Render data into CUDA buffer
 	void * deviceBuffer;
 	cudaGLMapBufferObject(& deviceBuffer, CudaDrawBufferHandle);
 	FractalRenderer.Render(deviceBuffer);
 	cudaGLUnmapBufferObject(CudaDrawBufferHandle);
+
+	// Bind OpenGL screen texture
+	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, ScreenTextureHandle);
 
 	// Copy data to OpenGL texture
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, CudaDrawBufferHandle);
@@ -71,25 +71,44 @@ void CMainState::Update(f32 const Elapsed)
 	// Dump Frame
 	if (DumpFrames)
 	{
-		u32 const FrameWidth = Application->GetWindow().GetSize().X;
-		u32 const FrameHeight = Application->GetWindow().GetSize().Y;
-		unsigned char * ImageData = new unsigned char[FrameWidth * FrameHeight * 3];
+		DumpFrameToFile();
 
-		static u32 Counter = 0;
-		glReadPixels(0, 0, FrameWidth, FrameHeight, GL_RGB, GL_UNSIGNED_BYTE, ImageData);
-		CImage * Image = new CImage(ImageData, FrameWidth, FrameHeight, false);
-		std::stringstream Stream;
-		Stream << "OutputImages/";
-		Stream << std::setw(5) << std::setfill('0') << Counter++;
-		Stream << ".bmp";
-		Image->Write(Stream.str());
-		delete Image;
 		if (FractalRenderer.GetIterationMax() == FractalRenderer.Params.IterationMax)
 			DumpFrames = false;
 	}
-	
+
+	PrintTextOverlay();
+	Application->GetWindow().SwapBuffers();
+}
+
+void CMainState::DumpFrameToFile()
+{
+	u32 const FrameWidth = Application->GetWindow().GetSize().X;
+	u32 const FrameHeight = Application->GetWindow().GetSize().Y;
+
+	unsigned char * ImageData = new unsigned char[FrameWidth * FrameHeight * 3];
+	glReadPixels(0, 0, FrameWidth, FrameHeight, GL_RGB, GL_UNSIGNED_BYTE, ImageData);
+
+	std::stringstream FileName;
+	FileName << "OutputImages/";
+	FileName << std::setw(5) << std::setfill('0') << CurrentDumpFrame ++;
+	FileName << ".bmp";
+
+	CImage * Image = new CImage(ImageData, FrameWidth, FrameHeight, false);
+	Image->Write(FileName.str());
+	delete Image;
+}
+
+void CMainState::PrintTextOverlay()
+{
 	freetype::print(Font, 10, 10, "FPS: %.3f", FrameRateCounter.GetAverage());
 	freetype::print(Font, 10, 40, "Max: %d of %d", FractalRenderer.GetIterationMax(), FractalRenderer.Params.IterationMax);
 	freetype::print(Font, 10, 70, "Increment: %d", FractalRenderer.IterationIncrement);
-	Application->GetWindow().SwapBuffers();
+}
+
+void CMainState::PrintLocation()
+{
+	printf("sX: %.7f   sY: %.7f   cX: %.15f   cY: %.15f\n",
+		FractalRenderer.Params.Scale.X, FractalRenderer.Params.Scale.Y,
+		FractalRenderer.Params.Center.X, FractalRenderer.Params.Center.Y);
 }
