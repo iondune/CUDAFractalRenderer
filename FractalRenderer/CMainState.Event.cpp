@@ -17,7 +17,7 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 
 		case EKey::W:
 
-			FractalRenderer.Params.Center.Y += (CurrentFractal == EFT_BURNING_SHIP ? -1 : 1) * FractalRenderer.Params.Scale.Y * MoveSpeed;
+			FractalRenderer.Params.Center.Y += FractalRenderer.Params.Scale.Y * MoveSpeed;
 			PrintLocation();
 			FractalRenderer.Reset();
 			break;
@@ -31,7 +31,7 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 
 		case EKey::S:
 
-			FractalRenderer.Params.Center.Y -= (CurrentFractal == EFT_BURNING_SHIP ? -1 : 1) * FractalRenderer.Params.Scale.Y * MoveSpeed;
+			FractalRenderer.Params.Center.Y -= FractalRenderer.Params.Scale.Y * MoveSpeed;
 			PrintLocation();
 			FractalRenderer.Reset();
 			break;
@@ -49,30 +49,14 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 			FractalRenderer.Reset();
 			break;
 
-		case EKey::Comma:
-
-			++ CurrentFractal;
-			if (CurrentFractal >= EFT_COUNT)
-				CurrentFractal = 0;
-			std::cout << "Fractal: " << CurrentFractal << std::endl;
-			break;
-
-		case EKey::M:
-
-			++ CurrentSettings;
-			if (CurrentSettings >= ESS_COUNT)
-				CurrentSettings = 0;
-			std::cout << "Multisample: " << CurrentSettings << std::endl;
-			break;
-
 		case EKey::Num1:
 		case EKey::Num2:
 		case EKey::Num3:
 		case EKey::Num4:
 
-			CurrentSettings = (int) Event.Key - (int) EKey::Num1 + 1;
-			std::cout << "Multisample: " << CurrentSettings << std::endl;
-			FractalRenderer.Params.MultiSample = Clamp(CurrentSettings, 1, 4);
+			Multisample = (int) Event.Key - (int) EKey::Num1 + 1;
+			std::cout << "Multisample: " << Multisample << std::endl;
+			FractalRenderer.Params.MultiSample = Clamp(Multisample, 1, 4);
 			FractalRenderer.FullReset();
 			break;
 
@@ -148,20 +132,6 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 			printf("IterationIncrement: %d\n", FractalRenderer.IterationIncrement);
 				
 			break;
-				
-		case EKey::H:
-				
-			ScaleFactor --;
-			RecalcScale();
-				
-			break;
-				
-		case EKey::N:
-				
-			ScaleFactor ++;
-			RecalcScale();
-				
-			break;
 
 		case EKey::U:
 
@@ -176,22 +146,6 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 			-- CurrentColor;
 			if (CurrentColor < 0)
 				CurrentColor = ColorMaps.size() - 1;
-
-			break;
-
-		case EKey::I:
-
-			++ SetColorCounter;
-
-			SetSetColor();
-
-			break;
-
-		case EKey::K:
-
-			-- SetColorCounter;
-
-			SetSetColor();
 
 			break;
 				

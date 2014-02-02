@@ -1,8 +1,5 @@
 
 #include "CudaFractalRender.cuh"
-#include "cuda_runtime.h"
-
-#include <ionCore/ionUtils.h>
 
 
 __global__ void InitKernel(SPixelState * States,  SFractalParams Params)

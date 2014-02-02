@@ -7,20 +7,17 @@
 
 
 CMainState::CMainState()
-	: uSetColor(0.0f), ScaleFactor(1), TextureScaling(1.f),
-	CurrentFractal(EFT_MANDEL), CurrentSettings(ESS_DEFAULT), CurrentColor(0), SetColorCounter(0),
-	DumpFrames(false)
+	: CurrentColor(0), DumpFrames(false)
 {}
 
 void CMainState::Begin()
 {
 	Font.init("Media/OpenSans.ttf", 16);
-
 	glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
+	vec2i const ScreenSize = Application->GetWindow().GetSize();
 
 	Finalize = CShaderLoader::loadShader("QuadCopyUV.glsl", "Finalize.frag");
-	CopyTexture = new CTexture(Application->GetWindow().GetSize(), false);
-	vec2i const ScreenSize = Application->GetWindow().GetSize();
+	CopyTexture = new CTexture(ScreenSize, false);
 
 	// Pixel Unpack Buffer for CUDA draw operations
 	glGenBuffers(1, & CudaDrawBufferHandle);
@@ -46,19 +43,23 @@ void CMainState::Update(f32 const Elapsed)
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
+	// Bind OpenGL screen texture
 	glEnable(GL_TEXTURE_2D);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, ScreenTextureHandle);
 
+	// Render data into CUDA buffer
 	void * deviceBuffer;
 	cudaGLMapBufferObject(& deviceBuffer, CudaDrawBufferHandle);
 	FractalRenderer.Render(deviceBuffer);
 	cudaGLUnmapBufferObject(CudaDrawBufferHandle);
 
+	// Copy data to OpenGL texture
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, CudaDrawBufferHandle);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FractalRenderer.Params.ScreenSize.X, FractalRenderer.Params.ScreenSize.Y, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-			
+
+	// Do OpenGL draw pass
 	SRenderPass Pass;
 	Pass.Shader = Finalize;
 	if (Pass.Shader)

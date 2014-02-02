@@ -15,6 +15,7 @@
   <ItemGroup>
     <None Include="CudaFractalRender.cuh" />
     <None Include="CudaVec2.cuh" />
+    <None Include="CudaUtils.cuh" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="CudaFractalRender.cu" />

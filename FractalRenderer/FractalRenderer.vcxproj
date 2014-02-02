@@ -81,6 +81,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   </ItemGroup>
   <ItemGroup>
     <None Include="CudaFractalRender.cuh" />
+    <None Include="CudaUtils.cuh" />
     <None Include="CudaVec2.cuh" />
   </ItemGroup>
   <ItemGroup>
