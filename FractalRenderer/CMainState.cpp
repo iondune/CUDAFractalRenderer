@@ -1,8 +1,7 @@
 
 #include "CMainState.h"
 #include "SRenderPass.h"
-
-#include <cuda.h>
+#include "CudaVec2.cuh"
 #include <cuda_gl_interop.h>
 
 
@@ -16,6 +15,7 @@ void CMainState::Begin()
 	glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
 	vec2i const ScreenSize = Application->GetWindow().GetSize();
 
+	// Texture and shader for draw operations
 	Finalize = CShaderLoader::loadShader("QuadCopyUV.glsl", "Finalize.frag");
 	CopyTexture = new CTexture(ScreenSize, false);
 
@@ -39,36 +39,9 @@ void CMainState::Begin()
 
 void CMainState::Update(f32 const Elapsed)
 {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	FrameRateCounter.Update(Elapsed);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Render data into CUDA buffer
-	void * deviceBuffer;
-	cudaGLMapBufferObject(& deviceBuffer, CudaDrawBufferHandle);
-	FractalRenderer.Render(deviceBuffer);
-	cudaGLUnmapBufferObject(CudaDrawBufferHandle);
-
-	// Bind OpenGL screen texture
-	glEnable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, ScreenTextureHandle);
-
-	// Copy data to OpenGL texture
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, CudaDrawBufferHandle);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FractalRenderer.Params.ScreenSize.X, FractalRenderer.Params.ScreenSize.Y, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
-	// Do OpenGL draw pass
-	SRenderPass Pass;
-	Pass.Shader = Finalize;
-	if (Pass.Shader)
-	{
-		Pass.Textures["uColorMap"] = ScreenTextureHandle;
-		Pass.DoPass();
-	}
-
-	// Dump Frame
 	if (DumpFrames)
 	{
 		DumpFrameToFile();
@@ -79,6 +52,48 @@ void CMainState::Update(f32 const Elapsed)
 
 	PrintTextOverlay();
 	Application->GetWindow().SwapBuffers();
+}
+
+void CMainState::DoRender()
+{
+	void * DeviceBuffer;
+
+	cudaGLMapBufferObject(& DeviceBuffer, CudaDrawBufferHandle);
+	FractalRenderer.Render(DeviceBuffer);
+	cudaGLUnmapBufferObject(CudaDrawBufferHandle);
+}
+
+void CMainState::DrawRenderToScreen()
+{
+	LoadTextureData();
+	DoTextureDraw();
+}
+
+void CMainState::LoadTextureData()
+{
+	BindTexture();
+
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, CudaDrawBufferHandle);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FractalRenderer.Params.ScreenSize.X, FractalRenderer.Params.ScreenSize.Y, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+}
+
+void CMainState::BindTexture()
+{
+	glEnable(GL_TEXTURE_2D);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, ScreenTextureHandle);
+}
+
+void CMainState::DoTextureDraw()
+{
+	SRenderPass Pass;
+	Pass.Shader = Finalize;
+	if (Pass.Shader)
+	{
+		Pass.Textures["uColorMap"] = ScreenTextureHandle;
+		Pass.DoPass();
+	}
 }
 
 void CMainState::DumpFrameToFile()

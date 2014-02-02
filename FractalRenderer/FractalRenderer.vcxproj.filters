@@ -18,20 +18,21 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="CudaFractalRender.cuh" />
     <None Include="CudaVec2.cuh">
       <Filter>Utilities</Filter>
     </None>
     <None Include="CudaUtils.cuh">
       <Filter>Utilities</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <CudaCompile Include="CudaFractalRender.cu" />
+    <None Include="CudaFractalRenderer.cuh" />
+    <None Include="CudaFractalKernels.cuh" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Utilities">
       <UniqueIdentifier>{dc7198eb-427a-41dd-a36e-99c203bfc5ca}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="CudaFractalRenderer.cu" />
   </ItemGroup>
 </Project>

@@ -1,7 +1,6 @@
 
 #pragma once
 
-#include <ionCore/ionTypes.h>
 #include "CudaVec2.cuh"
 
 
@@ -37,16 +36,12 @@ struct SPixelState
 
 class CudaFractalRenderer
 {
-	u32 IterationMax;
-	u32 HistogramSize;
-
-	SPixelState * DeviceStates;
-	u32 * DeviceHistogram;
 
 public:
 
 	void Init(cvec2u const & ScreenSize);
 	~CudaFractalRenderer();
+
 	void Render(void * deviceBuffer);
 	void FullReset();
 	void Reset();
@@ -56,5 +51,13 @@ public:
 
 	SFractalParams Params;
 	u32 IterationIncrement;
+
+protected:
+
+	u32 IterationMax;
+	u32 HistogramSize;
+
+	SPixelState * DeviceStates;
+	u32 * DeviceHistogram;
 
 };

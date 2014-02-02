@@ -79,12 +79,13 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="SRenderPass.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CudaFractalRender.cuh" />
+    <None Include="CudaFractalKernels.cuh" />
+    <None Include="CudaFractalRenderer.cuh" />
     <None Include="CudaUtils.cuh" />
     <None Include="CudaVec2.cuh" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="CudaFractalRender.cu" />
+    <CudaCompile Include="CudaFractalRenderer.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
