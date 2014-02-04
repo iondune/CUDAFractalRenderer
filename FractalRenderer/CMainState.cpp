@@ -42,6 +42,9 @@ void CMainState::Update(f32 const Elapsed)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	FrameRateCounter.Update(Elapsed);
 
+	DoRender();
+	DrawRenderToScreen();
+
 	if (DumpFrames)
 	{
 		DumpFrameToFile();
