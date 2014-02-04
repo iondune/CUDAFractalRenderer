@@ -21,6 +21,8 @@ public:
 
 protected:
 
+	bool IsRenderReady() const;
+
 	void DumpFrameToFile();
 	void PrintTextOverlay();
 	void PrintLocation();
@@ -35,6 +37,8 @@ protected:
 	CudaFractalRenderer FractalRenderer;
 
 	bool DumpFrames;
+	bool RenderZoom;
+	f64 LastRotation;
 	int CurrentDumpFrame;
 
 	CFrameRateCounter FrameRateCounter;

@@ -49,6 +49,13 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 			FractalRenderer.Reset();
 			break;
 
+		case EKey::Slash:
+
+			RenderZoom = ! RenderZoom;
+			FractalRenderer.Params.SetRotation(LastRotation = 0);
+			FractalRenderer.Reset();
+			break;
+
 		case EKey::Num1:
 		case EKey::Num2:
 		case EKey::Num3:

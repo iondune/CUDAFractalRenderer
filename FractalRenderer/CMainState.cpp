@@ -6,7 +6,7 @@
 
 
 CMainState::CMainState()
-	: CurrentColor(0), DumpFrames(false), CurrentDumpFrame(0)
+	: CurrentColor(0), DumpFrames(false), CurrentDumpFrame(0), RenderZoom(false), LastRotation(0)
 {}
 
 void CMainState::Begin()
@@ -37,6 +37,11 @@ void CMainState::Begin()
 	FractalRenderer.Init(cvec2u(Application->GetWindow().GetSize().X, Application->GetWindow().GetSize().Y));
 }
 
+bool CMainState::IsRenderReady() const
+{
+	return FractalRenderer.GetIterationMax() == FractalRenderer.Params.IterationMax;
+}
+
 void CMainState::Update(f32 const Elapsed)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -49,8 +54,23 @@ void CMainState::Update(f32 const Elapsed)
 	{
 		DumpFrameToFile();
 
-		if (FractalRenderer.GetIterationMax() == FractalRenderer.Params.IterationMax)
+		if (IsRenderReady())
 			DumpFrames = false;
+	}
+	else if (RenderZoom)
+	{
+		if (IsRenderReady())
+		{
+			static f64 const ZoomSpeed = 0.995;
+			static f64 const RotateSpeed = 0.001;
+
+			DumpFrameToFile();
+			
+			FractalRenderer.Params.Scale.X *= ZoomSpeed;
+			FractalRenderer.Params.Scale.Y *= ZoomSpeed;
+			FractalRenderer.Params.SetRotation(LastRotation += RotateSpeed);
+			FractalRenderer.Reset();
+		}
 	}
 
 	PrintTextOverlay();
