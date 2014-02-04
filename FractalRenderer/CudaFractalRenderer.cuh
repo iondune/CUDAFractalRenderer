@@ -11,6 +11,7 @@ struct SFractalParams
 	cvec2d Scale;
 	u32 MultiSample;
 	u32 IterationMax;
+	cvec2d RotationVector;
 
 	SFractalParams()
 	{
@@ -18,6 +19,12 @@ struct SFractalParams
 		Center = cvec2d(0, 0.7);
 		IterationMax = 1000;
 		MultiSample = 1;
+		RotationVector = cvec2d(0, 1);
+	}
+
+	void SetRotation(f64 const Angle)
+	{
+		RotationVector = cvec2d(sin(Angle), cos(Angle));
 	}
 };
 
