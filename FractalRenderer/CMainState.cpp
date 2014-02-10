@@ -4,6 +4,9 @@
 #include "CudaVec2.cuh"
 #include <cuda_gl_interop.h>
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image.write.h>
+
 
 CMainState::CMainState()
 	: CurrentColor(0), DumpFrames(false), CurrentDumpFrame(0), RenderZoom(false), LastRotation(0)
@@ -130,11 +133,14 @@ void CMainState::DumpFrameToFile()
 	std::stringstream FileName;
 	FileName << "OutputImages/";
 	FileName << std::setw(5) << std::setfill('0') << CurrentDumpFrame ++;
-	FileName << ".bmp";
+	FileName << ".png";
 
-	CImage * Image = new CImage(ImageData, FrameWidth, FrameHeight, false);
-	Image->Write(FileName.str());
-	delete Image;
+	stbi_write_png(FileName.str().c_str(), FrameWidth, FrameHeight, 3, ImageData, FrameWidth * 3);
+	delete [] ImageData;
+
+	//CImage * Image = new CImage(ImageData, FrameWidth, FrameHeight, false);
+	//Image->Write(FileName.str());
+	//delete Image;
 }
 
 void CMainState::PrintTextOverlay()
