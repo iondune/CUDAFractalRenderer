@@ -165,9 +165,9 @@ __global__ void DrawKernel(void * Image, SPixelState * States, u32 * Histogram, 
 		f64 AverageOneUp = Average + Histogram[Iteration] / (f64) Total;
 		Average = Average * (1 - Delta) + AverageOneUp * Delta;
 
-		f64 const Hue = pow(Average, 8);
+		f64 const Hue = pow(Average, 1);
 		u8 r, g, b;
-		ColorFromHSV(Hue * 255, 1, 1, r, g, b);
+		ColorFromHSV(fmod(Hue * (360 + 60), 360.0), 1, 1, r, g, b);
 		State.R = r;
 		State.G = g;
 		State.B = b;
