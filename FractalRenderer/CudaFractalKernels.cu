@@ -62,6 +62,7 @@ __global__ void HistogramKernel(SPixelState * States, u32 * Histogram, SFractalP
 		f64 Zn = sqrt(Dot(Point, Point));
 		f64 Nu = log(log(Zn) / log(2.0)) / log(2.0);
 		ContinuousIterator = IterationCounter + 1 - Nu;
+
 		atomicAdd(Histogram + IterationCounter, 1);
 		State.Finished = true;
 	}
@@ -122,6 +123,50 @@ __device__ static void ColorFromHSV(f64 const hue, f64 const saturation, f64 val
 	}
 }
 
+struct Color
+{
+	u8 r, g, b;
+
+	__device__ Color(u8 R, u8 G, u8 B)
+		: r(R), g(G), b(B)
+	{}
+};
+
+__device__ static void ColorFromHue(f64 Hue, u8 & r, u8 & g, u8 & b, f64 const Amp)
+{
+	Hue = pow(Hue, Amp);
+	//ColorFromHSV(fmod(Hue * (360 + 60), 360.0), 1, 1, r, g, b);
+	Color const Colors[] = 
+	{
+		//Color(0, 0, 0),
+		//Color(24, 204, 27),
+		//Color(255, 255, 255),
+		Color(255, 78, 51),
+		Color(43, 96, 255),
+		Color(255, 255, 255),
+
+		//Color(255, 119, 46),
+		//Color(46, 182, 255),
+		//Color(255, 255, 255),
+	};
+	
+	if (Hue < 0)
+		Hue = 0;
+	if (Hue > 1)
+		Hue = 1;
+
+	int const Count = sizeof(Colors) / sizeof(* Colors);
+	int const Wrap = 2;
+	int const Size = Count * Wrap - 1;
+	int const Below = (int) floor(Hue * Size) % Count;
+	int const Above = (int) ceil(Hue * Size) % Count;
+	f64 const Part = Hue * Size - floor(Hue * Size);
+	
+	r = (u8) ((1 - Part) * Colors[Below].r + Part * Colors[Above].r);
+	g = (u8) ((1 - Part) * Colors[Below].g + Part * Colors[Above].g);
+	b = (u8) ((1 - Part) * Colors[Below].b + Part * Colors[Above].b);
+}
+
 __global__ void DrawKernel(void * Image, SPixelState * States, u32 * Histogram, SFractalParams Params)
 {
 	u32 const MSWidth = Params.ScreenSize.X * Params.MultiSample;
@@ -165,9 +210,17 @@ __global__ void DrawKernel(void * Image, SPixelState * States, u32 * Histogram, 
 		f64 AverageOneUp = Average + Histogram[Iteration] / (f64) Total;
 		Average = Average * (1 - Delta) + AverageOneUp * Delta;
 
-		f64 const Hue = pow(Average, 1);
+		f64 const Hue = Average;
 		u8 r, g, b;
-		ColorFromHSV(fmod(Hue * (360 + 60), 360.0), 1, 1, r, g, b);
+		f64 Amp = 1;
+		f64 const MaxAmp = 64;
+		f64 const StartAmp = 1;
+		f64 const EndAmp = 3;
+		if (Params.Scale.Y > EndAmp)
+			Amp = MaxAmp;
+		else if (Params.Scale.Y > StartAmp)
+			Amp = pow((Params.Scale.Y - StartAmp) / (EndAmp - StartAmp), 2) * (MaxAmp - 1) + 1;
+		ColorFromHue(Hue, r, g, b, Amp);
 		State.R = r;
 		State.G = g;
 		State.B = b;
