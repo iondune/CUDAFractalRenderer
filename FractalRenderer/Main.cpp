@@ -6,7 +6,7 @@
 
 int main(int argc, char * argv[])
 {
-	vec2i ScreenSize(1280, 720);
+	vec2i ScreenSize(1600, 900);
 
 	CShaderLoader::ShaderDirectory = "Shaders/";
 	CImageLoader::ImageDirectory   = "Media/";
