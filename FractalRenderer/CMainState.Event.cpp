@@ -175,6 +175,11 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 
 			break;
 
+		case EKey::Grave:
+
+			ShowText = ! ShowText;
+			break;
+
 		}
 	}
 }

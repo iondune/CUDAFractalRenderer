@@ -52,4 +52,6 @@ protected:
 	int CurrentColor;
 	int Multisample;
 
+	bool ShowText;
+
 };

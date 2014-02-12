@@ -9,7 +9,7 @@
 
 
 CMainState::CMainState()
-	: CurrentColor(0), DumpFrames(false), CurrentDumpFrame(0), RenderZoom(false), LastRotation(0)
+	: CurrentColor(0), DumpFrames(false), CurrentDumpFrame(0), RenderZoom(false), LastRotation(0), ShowText(true)
 {}
 
 void CMainState::Begin()
@@ -145,6 +145,9 @@ void CMainState::DumpFrameToFile()
 
 void CMainState::PrintTextOverlay()
 {
+	if (! ShowText)
+		return;
+
 	freetype::print(Font, 10, 10, "FPS: %.3f", FrameRateCounter.GetAverage());
 	freetype::print(Font, 10, 40, "Max: %d of %d", FractalRenderer.GetIterationMax(), FractalRenderer.Params.IterationMax);
 	freetype::print(Font, 10, 70, "Increment: %d", FractalRenderer.IterationIncrement);
