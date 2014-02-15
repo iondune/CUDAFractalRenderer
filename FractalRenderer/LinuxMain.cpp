@@ -30,6 +30,13 @@ char * GetArgument(char ** begin, char ** end, std::string const & option)
 	return 0;
 }
 
+void GetStringArgument(char ** begin, char ** end, std::string const & option, std::string * argument)
+{
+	char * string;
+	if (string = GetArgument(begin, end, option))
+		*argument = string;
+}
+
 void GetIntArgument(char ** begin, char ** end, std::string const & option, int * argument)
 {
 	char * string;
@@ -60,12 +67,16 @@ int main(int argc, char * argv[])
 {
 	u32 ScreenSizeX = 1600, ScreenSizeY = 900;
 	u32 MultiSample = 4;
+	std::string OutputDirectory = "./";
 
 	GetUintArgument(argv, argv+argc, "-w", & ScreenSizeX);
 	GetUintArgument(argv, argv+argc, "-h", & ScreenSizeY);
 	GetUintArgument(argv, argv+argc, "-m", & MultiSample);
+	GetStringArgument(argv, argv+argc, "-d", & OutputDirectory);
 
 	printf("Doing %dx%d render at %d MS\n", ScreenSizeX, ScreenSizeY, MultiSample);
+	printf("Writing images to %s\n", OutputDirectory.c_str());
+	printf("\n");
 
 	CudaFractalRenderer Renderer;
 	Renderer.Params.Stride = 3;
@@ -88,7 +99,7 @@ int main(int argc, char * argv[])
 	CheckedCudaCall(cudaFree(DeviceBuffer), "Free");
 
 	std::stringstream FileName;
-	FileName << "OutputImages";
+	FileName << OutputDirectory + "/Image";
 	FileName << std::setw(5) << std::setfill('0') << /*CurrentDumpFrame ++*/ 0;
 	FileName << ".png";
 
