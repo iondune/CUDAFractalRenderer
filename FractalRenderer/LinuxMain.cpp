@@ -63,49 +63,85 @@ bool IfArgumentExists(char ** begin, char ** end, std::string const & option)
 	return std::find(begin, end, option) != end;
 }
 
-int main(int argc, char * argv[])
+class Main
 {
-	u32 ScreenSizeX = 1600, ScreenSizeY = 900;
-	u32 MultiSample = 4;
-	std::string OutputDirectory = "./";
 
-	GetUintArgument(argv, argv+argc, "-w", & ScreenSizeX);
-	GetUintArgument(argv, argv+argc, "-h", & ScreenSizeY);
-	GetUintArgument(argv, argv+argc, "-m", & MultiSample);
-	GetStringArgument(argv, argv+argc, "-d", & OutputDirectory);
+public:
 
-	printf("Doing %dx%d render at %d MS\n", ScreenSizeX, ScreenSizeY, MultiSample);
-	printf("Writing images to %s\n", OutputDirectory.c_str());
-	printf("\n");
-
-	CudaFractalRenderer Renderer;
-	Renderer.Params.Stride = 3;
-	Renderer.Params.MultiSample = MultiSample;
-	Renderer.Init(cvec2u(ScreenSizeX, ScreenSizeY));
-
-	void * DeviceBuffer;
-	u32 const BufferSize = ScreenSizeX * ScreenSizeY * sizeof(u8) * 3;
-	CheckedCudaCall(cudaMalloc((void**) & DeviceBuffer, BufferSize));
-	CheckedCudaCall(cudaMemset(DeviceBuffer, 0, BufferSize));
-
-	while (! Renderer.Done())
+	void Run(int argc, char ** argv)
 	{
-		printf("Doing render at %d\n", Renderer.GetIterationMax());
-		Renderer.Render(DeviceBuffer);
+		Init(argc, argv);
+		SetupBuffer();
+		DoRender();
 	}
 
-	u8 * Copy = new u8[BufferSize];
-	CheckedCudaCall(cudaMemcpy(Copy, DeviceBuffer, BufferSize, cudaMemcpyDeviceToHost), "MemCpy");
-	CheckedCudaCall(cudaFree(DeviceBuffer), "Free");
+protected:
 
-	std::stringstream FileName;
-	FileName << OutputDirectory + "/Image";
-	FileName << std::setw(5) << std::setfill('0') << /*CurrentDumpFrame ++*/ 0;
-	FileName << ".png";
+	void Init(int argc, char ** argv)
+	{
+		ScreenSizeX = 1600, ScreenSizeY = 900;
+		MultiSample = 4;
+		OutputDirectory = ".";
 
-	FlipImage(Copy, ScreenSizeX, ScreenSizeY);
-	stbi_write_png(FileName.str().c_str(), ScreenSizeX, ScreenSizeY, 3, Copy, ScreenSizeX * 3);
-	delete [] Copy;
+		GetUintArgument(argv, argv+argc, "-w", & ScreenSizeX);
+		GetUintArgument(argv, argv+argc, "-h", & ScreenSizeY);
+		GetUintArgument(argv, argv+argc, "-m", & MultiSample);
+		GetStringArgument(argv, argv+argc, "-d", & OutputDirectory);
 
+		printf("Doing %dx%d render at %d MS\n", ScreenSizeX, ScreenSizeY, MultiSample);
+		printf("Writing images to '%s/'\n", OutputDirectory.c_str());
+		printf("\n");
+
+		Renderer.Params.Stride = 3;
+		Renderer.Params.MultiSample = MultiSample;
+		Renderer.Init(cvec2u(ScreenSizeX, ScreenSizeY));
+
+		BufferSize = ScreenSizeX * ScreenSizeY * sizeof(u8) * 3;
+	}
+
+	void SetupBuffer()
+	{
+		CheckedCudaCall(cudaMalloc((void**) & DeviceBuffer, BufferSize));
+		CheckedCudaCall(cudaMemset(DeviceBuffer, 0, BufferSize));
+	}
+
+	void DoRender()
+	{
+		while (! Renderer.Done())
+		{
+			printf("Doing render at %d\n", Renderer.GetIterationMax());
+			Renderer.Render(DeviceBuffer);
+		}
+
+		u8 * Copy = new u8[BufferSize];
+		CheckedCudaCall(cudaMemcpy(Copy, DeviceBuffer, BufferSize, cudaMemcpyDeviceToHost), "MemCpy");
+		CheckedCudaCall(cudaFree(DeviceBuffer), "Free");
+
+		std::stringstream FileName;
+		FileName << OutputDirectory + "/Image";
+		FileName << std::setw(5) << std::setfill('0') << /*CurrentDumpFrame ++*/ 0;
+		FileName << ".png";
+
+		FlipImage(Copy, ScreenSizeX, ScreenSizeY);
+		stbi_write_png(FileName.str().c_str(), ScreenSizeX, ScreenSizeY, 3, Copy, ScreenSizeX * 3);
+		delete [] Copy;
+	}
+
+
+	CudaFractalRenderer Renderer;
+
+	void * DeviceBuffer;
+	u32 BufferSize;
+
+	u32 ScreenSizeX, ScreenSizeY;
+	u32 MultiSample;
+	std::string OutputDirectory;
+
+};
+
+int main(int argc, char * argv[])
+{
+	Main m;
+	m.Run(argc, argv);
 	return 0;
 }
