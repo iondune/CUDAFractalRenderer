@@ -23,10 +23,12 @@ void FlipImage(u8 * Image, u32 const X, u32 const Y)
 int main(int argc, char * argv[])
 {
 	u32 const ScreenSizeX = 1600, ScreenSizeY = 900;
+	u32 MultiSample = 4;
 
 	CudaFractalRenderer Renderer;
-	Renderer.Init(cvec2u(ScreenSizeX, ScreenSizeY));
 	Renderer.Params.Stride = 3;
+	Renderer.Params.MultiSample = MultiSample;
+	Renderer.Init(cvec2u(ScreenSizeX, ScreenSizeY));
 
 	void * DeviceBuffer;
 	u32 const BufferSize = ScreenSizeX * ScreenSizeY * sizeof(u8) * 3;
