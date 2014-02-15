@@ -17,3 +17,5 @@ syntax: glob
 Thumbs.db
 OutputImages/
 FractalMPI
+Image*.png
+hosts*

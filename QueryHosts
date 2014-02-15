@@ -1,0 +1,9 @@
+#! /bin/sh
+
+FindHosts > hosts
+for number in 2 4 8 16 32
+do
+	cat hosts | sort -r | tail -n $number > hosts$number
+done
+
+echo `cat hosts | wc -l` hosts found.

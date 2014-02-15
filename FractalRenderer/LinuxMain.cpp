@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <ionCore/ionTypes.h>
+#include <mpi.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
@@ -72,17 +73,20 @@ public:
 	{
 		Init(argc, argv);
 		SetupBuffer();
-		for (int i = 0; i < FrameCount; ++ i)
+		for (int i = ProcessorId; i < FrameCount; i += ProcessorCount)
 		{
 			static f64 const ZoomSpeed = 0.995;
 			static f64 const RotateSpeed = 0.001;
 
-			printf("Rendering frame %d of %d\n", i+1, FrameCount);
-			DoRender();
+			printf("Rendering frame %d of %d on system %d\n", i+1, FrameCount, ProcessorId);
+			DoRender(i);
 
-			Renderer.Params.Scale.X *= ZoomSpeed;
-			Renderer.Params.Scale.Y *= ZoomSpeed;
-			Renderer.Params.SetRotation(LastRotation += RotateSpeed);
+			for (int j = 0; j < ProcessorCount; ++ j)
+			{
+				Renderer.Params.Scale.X *= ZoomSpeed;
+				Renderer.Params.Scale.Y *= ZoomSpeed;
+			}
+			Renderer.Params.SetRotation(RotateSpeed * i);
 			Renderer.Reset();
 		}
 		Cleanup();
@@ -96,17 +100,28 @@ protected:
 		MultiSample = 4;
 		OutputDirectory = ".";
 		CurrentFrame = 0;
-		FrameCount = 10;
+		FrameCount = 100;
 		LastRotation = 0;
+
+		MPI_Init(& argc, & argv);
+
+		MPI_Comm_size(MPI_COMM_WORLD, & ProcessorCount);
+		MPI_Comm_rank(MPI_COMM_WORLD, & ProcessorId);
+
+		if (! ProcessorId)
+			printf("There are %d processors.\n", ProcessorCount);
 
 		GetUintArgument(argv, argv+argc, "-w", & ScreenSizeX);
 		GetUintArgument(argv, argv+argc, "-h", & ScreenSizeY);
 		GetUintArgument(argv, argv+argc, "-m", & MultiSample);
 		GetStringArgument(argv, argv+argc, "-d", & OutputDirectory);
 
-		printf("Doing %dx%d render at %d MS\n", ScreenSizeX, ScreenSizeY, MultiSample);
-		printf("Writing images to '%s/'\n", OutputDirectory.c_str());
-		printf("\n");
+		if (! ProcessorId)
+		{
+			printf("Doing %dx%d render at %d MS\n", ScreenSizeX, ScreenSizeY, MultiSample);
+			printf("Writing images to '%s/'\n", OutputDirectory.c_str());
+			printf("\n");
+		}
 
 		Renderer.Params.Stride = 3;
 		Renderer.Params.MultiSample = MultiSample;
@@ -121,7 +136,7 @@ protected:
 		CheckedCudaCall(cudaMemset(DeviceBuffer, 0, BufferSize));
 	}
 
-	void DoRender()
+	void DoRender(int const Frame)
 	{
 		while (! Renderer.Done())
 		{
@@ -134,7 +149,7 @@ protected:
 
 		std::stringstream FileName;
 		FileName << OutputDirectory + "/Image";
-		FileName << std::setw(5) << std::setfill('0') << CurrentFrame ++;
+		FileName << std::setw(5) << std::setfill('0') << Frame;
 		FileName << ".png";
 
 		FlipImage(Copy, ScreenSizeX, ScreenSizeY);
@@ -145,6 +160,7 @@ protected:
 	void Cleanup()
 	{
 		CheckedCudaCall(cudaFree(DeviceBuffer), "Free");
+		MPI_Finalize();
 	}
 
 
@@ -159,6 +175,8 @@ protected:
 	u32 CurrentFrame;
 	std::string OutputDirectory;
 	f64 LastRotation;
+
+	int ProcessorId, ProcessorCount;
 
 };
 
