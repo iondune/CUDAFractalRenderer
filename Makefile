@@ -25,6 +25,6 @@ FractalMPI: $(SRC)/LinuxMain.cpp $(SRC)/CudaFractalRenderer.cu $(SRC)/CudaFracta
 	$(NMCC) $(NMCCFLAGS) -o $@ $^
 
 clean:
-	rm -f FractalRenderer
+	rm -f FractalMPI Image*.png
 
 remake: clean all

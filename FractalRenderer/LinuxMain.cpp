@@ -73,21 +73,22 @@ public:
 	{
 		Init(argc, argv);
 		SetupBuffer();
+		int LastZoom = 0;
 		for (int i = ProcessorId; i < FrameCount; i += ProcessorCount)
 		{
 			static f64 const ZoomSpeed = 0.995;
 			static f64 const RotateSpeed = 0.001;
 
 			printf("Rendering frame %d of %d on system %d\n", i+1, FrameCount, ProcessorId);
-			DoRender(i);
-
-			for (int j = 0; j < ProcessorCount; ++ j)
+			for (int j = LastZoom; j < i; ++ j)
 			{
 				Renderer.Params.Scale.X *= ZoomSpeed;
 				Renderer.Params.Scale.Y *= ZoomSpeed;
 			}
+			LastZoom = i;
 			Renderer.Params.SetRotation(RotateSpeed * i);
 			Renderer.Reset();
+			DoRender(i);
 		}
 		Cleanup();
 	}
@@ -100,7 +101,7 @@ protected:
 		MultiSample = 4;
 		OutputDirectory = ".";
 		CurrentFrame = 0;
-		FrameCount = 100;
+		FrameCount = 40;
 		LastRotation = 0;
 
 		MPI_Init(& argc, & argv);
