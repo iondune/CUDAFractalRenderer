@@ -14,7 +14,6 @@ int main(int argc, char * argv[])
 
 	CApplication & Application = CApplication::Get();
 	Application.Init(ScreenSize, "Fractal Renderer", false);
-	Application.GetSceneManager().init(true, true);
 
 	CMainState & State = CMainState::Get();
 	Application.GetStateManager().SetState(& State);
