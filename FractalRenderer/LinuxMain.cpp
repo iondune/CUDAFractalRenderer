@@ -72,7 +72,20 @@ public:
 	{
 		Init(argc, argv);
 		SetupBuffer();
-		DoRender();
+		for (int i = 0; i < FrameCount; ++ i)
+		{
+			static f64 const ZoomSpeed = 0.995;
+			static f64 const RotateSpeed = 0.001;
+
+			printf("Rendering frame %d of %d\n", i+1, FrameCount);
+			DoRender();
+
+			Renderer.Params.Scale.X *= ZoomSpeed;
+			Renderer.Params.Scale.Y *= ZoomSpeed;
+			Renderer.Params.SetRotation(LastRotation += RotateSpeed);
+			Renderer.Reset();
+		}
+		Cleanup();
 	}
 
 protected:
@@ -82,6 +95,9 @@ protected:
 		ScreenSizeX = 1600, ScreenSizeY = 900;
 		MultiSample = 4;
 		OutputDirectory = ".";
+		CurrentFrame = 0;
+		FrameCount = 10;
+		LastRotation = 0;
 
 		GetUintArgument(argv, argv+argc, "-w", & ScreenSizeX);
 		GetUintArgument(argv, argv+argc, "-h", & ScreenSizeY);
@@ -109,22 +125,26 @@ protected:
 	{
 		while (! Renderer.Done())
 		{
-			printf("Doing render at %d\n", Renderer.GetIterationMax());
+			//printf("Doing render at %d\n", Renderer.GetIterationMax());
 			Renderer.Render(DeviceBuffer);
 		}
 
 		u8 * Copy = new u8[BufferSize];
 		CheckedCudaCall(cudaMemcpy(Copy, DeviceBuffer, BufferSize, cudaMemcpyDeviceToHost), "MemCpy");
-		CheckedCudaCall(cudaFree(DeviceBuffer), "Free");
 
 		std::stringstream FileName;
 		FileName << OutputDirectory + "/Image";
-		FileName << std::setw(5) << std::setfill('0') << /*CurrentDumpFrame ++*/ 0;
+		FileName << std::setw(5) << std::setfill('0') << CurrentFrame ++;
 		FileName << ".png";
 
 		FlipImage(Copy, ScreenSizeX, ScreenSizeY);
 		stbi_write_png(FileName.str().c_str(), ScreenSizeX, ScreenSizeY, 3, Copy, ScreenSizeX * 3);
 		delete [] Copy;
+	}
+
+	void Cleanup()
+	{
+		CheckedCudaCall(cudaFree(DeviceBuffer), "Free");
 	}
 
 
@@ -135,7 +155,10 @@ protected:
 
 	u32 ScreenSizeX, ScreenSizeY;
 	u32 MultiSample;
+	u32 FrameCount;
+	u32 CurrentFrame;
 	std::string OutputDirectory;
+	f64 LastRotation;
 
 };
 
