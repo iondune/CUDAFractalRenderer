@@ -5,7 +5,7 @@
 #include <cuda_gl_interop.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb_image.write.h>
+#include <stb_image_write.h>
 
 
 CMainState::CMainState()
