@@ -141,9 +141,16 @@ __device__ static void ColorFromHue(f64 Hue, u8 & r, u8 & g, u8 & b, f64 const A
 		//Color(0, 0, 0),
 		//Color(24, 204, 27),
 		//Color(255, 255, 255),
+
+		// Red/Blue
 		Color(255, 78, 51),
 		Color(43, 96, 255),
 		Color(255, 255, 255),
+		
+		// Valentines
+		//Color(250, 70, 91),
+		//Color(134, 54, 173),
+		//Color(255, 255, 255),
 
 		//Color(255, 119, 46),
 		//Color(46, 182, 255),
