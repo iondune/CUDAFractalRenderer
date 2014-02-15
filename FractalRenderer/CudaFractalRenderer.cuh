@@ -62,6 +62,11 @@ public:
 	SFractalParams Params;
 	u32 IterationIncrement;
 
+	bool Done() const
+	{
+		return IterationMax == Params.IterationMax;
+	}
+
 protected:
 
 	u32 IterationMax;

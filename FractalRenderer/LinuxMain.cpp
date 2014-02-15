@@ -32,7 +32,12 @@ int main(int argc, char * argv[])
 	u32 const BufferSize = ScreenSizeX * ScreenSizeY * sizeof(u8) * 3;
 	CheckedCudaCall(cudaMalloc((void**) & DeviceBuffer, BufferSize));
 	CheckedCudaCall(cudaMemset(DeviceBuffer, 0, BufferSize));
-	Renderer.Render(DeviceBuffer);
+
+	while (! Renderer.Done())
+	{
+		printf("Doing render at %d\n", Renderer.GetIterationMax());
+		Renderer.Render(DeviceBuffer);
+	}
 
 	u8 * Copy = new u8[BufferSize];
 	CheckedCudaCall(cudaMemcpy(Copy, DeviceBuffer, BufferSize, cudaMemcpyDeviceToHost), "MemCpy");
