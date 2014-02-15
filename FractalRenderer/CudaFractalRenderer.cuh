@@ -28,17 +28,17 @@ struct SFractalParams
 	}
 };
 
-struct SPixelState
+struct SPixelState   //  48 bytes
 {
-	f64 Counter;
-	cvec2d Point;
-	u32 Iteration;
-	u32 LastMax;
-	u32 LastTotal;
-	bool Finished;
-	u32 FinalSum;
-	bool Calculated;
-	u8 R, G, B;
+	f64 Counter;     //  8
+	cvec2d Point;    // 16
+	u32 Iteration;   //  4
+	u32 LastMax;     //  4
+	u32 LastTotal;   //  4
+	bool Finished;   //  4
+	u32 FinalSum;    //  4
+	bool Calculated; //  
+	u8 R, G, B;      //  4
 };
 
 class CudaFractalRenderer

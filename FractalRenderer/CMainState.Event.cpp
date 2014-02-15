@@ -71,6 +71,7 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 
 			FractalRenderer.Params.Scale.X *= 0.5;
 			FractalRenderer.Params.Scale.Y *= 0.5;
+			PrintLocation();
 			FractalRenderer.Reset();
 			break;
 
@@ -78,6 +79,7 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 
 			FractalRenderer.Params.Scale.X *= 2.0;
 			FractalRenderer.Params.Scale.Y *= 2.0;
+			PrintLocation();
 			FractalRenderer.Reset();
 			break;
 
@@ -85,6 +87,7 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 
 			FractalRenderer.Params.Scale.X *= 0.75;
 			FractalRenderer.Params.Scale.Y *= 0.75;
+			PrintLocation();
 			FractalRenderer.Reset();
 			break;
 
@@ -92,6 +95,23 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 
 			FractalRenderer.Params.Scale.X *= 1.33;
 			FractalRenderer.Params.Scale.Y *= 1.33;
+			PrintLocation();
+			FractalRenderer.Reset();
+			break;
+
+		case EKey::Comma:
+
+			FractalRenderer.Params.Scale.X *= 0.9901;
+			FractalRenderer.Params.Scale.Y *= 0.9901;
+			PrintLocation();
+			FractalRenderer.Reset();
+			break;
+
+		case EKey::Period:
+
+			FractalRenderer.Params.Scale.X *= 1.01;
+			FractalRenderer.Params.Scale.Y *= 1.01;
+			PrintLocation();
 			FractalRenderer.Reset();
 			break;
 
@@ -153,6 +173,11 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 			if (CurrentColor < 0)
 				CurrentColor = ColorMaps.size() - 1;
 
+			break;
+
+		case EKey::Grave:
+
+			ShowText = ! ShowText;
 			break;
 
 		}
