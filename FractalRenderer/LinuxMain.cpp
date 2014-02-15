@@ -1,6 +1,7 @@
 
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 #include <ionCore/ionTypes.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -19,11 +20,52 @@ void FlipImage(u8 * Image, u32 const X, u32 const Y)
 	}
 }
 
+char * GetArgument(char ** begin, char ** end, std::string const & option)
+{
+	char ** itr = std::find(begin, end, option);
+	if (itr != end && ++itr != end)
+	{
+		return *itr;
+	}
+	return 0;
+}
+
+void GetIntArgument(char ** begin, char ** end, std::string const & option, int * argument)
+{
+	char * string;
+	if (string = GetArgument(begin, end, option))
+		*argument = atoi(string);
+}
+
+void GetUintArgument(char ** begin, char ** end, std::string const & option, uint * argument)
+{
+	char * string;
+	if (string = GetArgument(begin, end, option))
+		*argument = atoi(string);
+}
+
+void GetDoubleArgument(char ** begin, char ** end, std::string const & option, double * argument)
+{
+	char * string;
+	if (string = GetArgument(begin, end, option))
+		*argument = atof(string);
+}
+
+bool IfArgumentExists(char ** begin, char ** end, std::string const & option)
+{
+	return std::find(begin, end, option) != end;
+}
 
 int main(int argc, char * argv[])
 {
-	u32 const ScreenSizeX = 1600, ScreenSizeY = 900;
+	u32 ScreenSizeX = 1600, ScreenSizeY = 900;
 	u32 MultiSample = 4;
+
+	GetUintArgument(argv, argv+argc, "-w", & ScreenSizeX);
+	GetUintArgument(argv, argv+argc, "-h", & ScreenSizeY);
+	GetUintArgument(argv, argv+argc, "-m", & MultiSample);
+
+	printf("Doing %dx%d render at %d MS\n", ScreenSizeX, ScreenSizeY, MultiSample);
 
 	CudaFractalRenderer Renderer;
 	Renderer.Params.Stride = 3;
