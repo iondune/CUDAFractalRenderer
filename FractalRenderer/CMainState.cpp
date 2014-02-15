@@ -3,7 +3,6 @@
 #include "SRenderPass.h"
 #include "CudaVec2.cuh"
 #include <cuda_gl_interop.h>
-#include <cudaGL.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
@@ -26,13 +25,13 @@ void CMainState::Begin()
 	int Count;
 	cudaGetDeviceCount(& Count);
 	printf("There are %d devices.\n", Count);
-	cudaGLSetGLDevice(0);
+	CheckedCudaCall(cudaGLSetGLDevice(0), "SetGLDevice");
 
 	// Pixel Unpack Buffer for CUDA draw operations
 	glGenBuffers(1, & CudaDrawBufferHandle);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, CudaDrawBufferHandle);
 	glBufferData(GL_PIXEL_UNPACK_BUFFER, ScreenSize.X * ScreenSize.Y * 4, NULL, GL_DYNAMIC_COPY);
-	cudaGraphicsGLRegisterBuffer(& Resource, CudaDrawBufferHandle, cudaGraphicsRegisterFlagsWriteDiscard);
+	CheckedCudaCall(cudaGraphicsGLRegisterBuffer(& Resource, CudaDrawBufferHandle, cudaGraphicsRegisterFlagsWriteDiscard), "RegisterBuffer");
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
 	// Texture for screen copy
@@ -90,12 +89,11 @@ void CMainState::DoRender()
 {
 	void * DeviceBuffer;
 
-	cudaGraphicsMapResources(1, & Resource);
+	CheckedCudaCall(cudaGraphicsMapResources(1, & Resource), "MapResource");
 	size_t Size;
-	cudaGraphicsResourceGetMappedPointer(& DeviceBuffer, & Size, Resource);
+	CheckedCudaCall(cudaGraphicsResourceGetMappedPointer(& DeviceBuffer, & Size, Resource), "GetMappedPointer");
 	FractalRenderer.Render(DeviceBuffer);
-	cudaGLUnmapBufferObject(CudaDrawBufferHandle);
-	cudaGraphicsUnmapResources(1, & Resource);
+	CheckedCudaCall(cudaGraphicsUnmapResources(1, & Resource), "UnmapResources");
 }
 
 void CMainState::DrawRenderToScreen()
