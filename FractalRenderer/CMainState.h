@@ -45,6 +45,7 @@ protected:
 	freetype::font_data Font;
 
 	u32 CudaDrawBufferHandle, ScreenTextureHandle;
+	cudaGraphicsResource * Resource;
 	CShader * Finalize;
 	CTexture * CopyTexture;
 
