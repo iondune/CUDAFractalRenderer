@@ -9,7 +9,7 @@
 
 
 CMainState::CMainState()
-	: CurrentColor(0), DumpFrames(false), CurrentDumpFrame(0), RenderZoom(false), LastRotation(0), ShowText(true)
+	: CurrentColor(0), DumpFrames(false), CurrentDumpFrame(0), RenderZoom(false), LastRotation(0), ShowText(true), Resource(0)
 {}
 
 void CMainState::Begin()
@@ -144,10 +144,6 @@ void CMainState::DumpFrameToFile()
 
 	stbi_write_png(FileName.str().c_str(), FrameWidth, FrameHeight, 3, ImageData, FrameWidth * 3);
 	delete [] ImageData;
-
-	//CImage * Image = new CImage(ImageData, FrameWidth, FrameHeight, false);
-	//Image->Write(FileName.str());
-	//delete Image;
 }
 
 void CMainState::PrintTextOverlay()
