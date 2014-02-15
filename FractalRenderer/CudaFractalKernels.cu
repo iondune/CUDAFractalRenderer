@@ -74,54 +74,54 @@ __global__ void HistogramKernel(SPixelState * States, u32 * Histogram, SFractalP
 	State.Counter = ContinuousIterator;
 }
 
-__device__ static void ColorFromHSV(f64 const hue, f64 const saturation, f64 value, u8 & r, u8 & g, u8 & b)
-{
-    int const hi = int(floor(hue / 60)) % 6;
-    double const f = hue / 60 - floor(hue / 60);
+// __device__ static void ColorFromHSV(f64 const hue, f64 const saturation, f64 value, u8 & r, u8 & g, u8 & b)
+// {
+// 	int const hi = int(floor(hue / 60)) % 6;
+// 	double const f = hue / 60 - floor(hue / 60);
 
-    value = value * 255;
-    int v = int(value);
-    int p = int(value * (1 - saturation));
-    int q = int(value * (1 - f * saturation));
-    int t = int(value * (1 - (1 - f) * saturation));
+// 	value = value * 255;
+// 	int v = int(value);
+// 	int p = int(value * (1 - saturation));
+// 	int q = int(value * (1 - f * saturation));
+// 	int t = int(value * (1 - (1 - f) * saturation));
 
-    if (hi == 0)
-	{
-		r = v;
-		g = t;
-		b = p;
-	}
-    else if (hi == 1)
-	{
-		r = q;
-		g = v;
-		b = p;
-	}
-    else if (hi == 2)
-	{
-		r = p;
-		g = v;
-		b = t;
-	}
-    else if (hi == 3)
-	{
-		r = p;
-		g = q;
-		b = v;
-	}
-    else if (hi == 4)
-	{
-		r = t;
-		g = p;
-		b = v;
-	}
-    else
-	{
-		r = v;
-		g = p;
-		b = q;
-	}
-}
+// 	if (hi == 0)
+// 	{
+// 		r = v;
+// 		g = t;
+// 		b = p;
+// 	}
+// 	else if (hi == 1)
+// 	{
+// 		r = q;
+// 		g = v;
+// 		b = p;
+// 	}
+// 	else if (hi == 2)
+// 	{
+// 		r = p;
+// 		g = v;
+// 		b = t;
+// 	}
+// 	else if (hi == 3)
+// 	{
+// 		r = p;
+// 		g = q;
+// 		b = v;
+// 	}
+// 	else if (hi == 4)
+// 	{
+// 		r = t;
+// 		g = p;
+// 		b = v;
+// 	}
+// 	else
+// 	{
+// 		r = v;
+// 		g = p;
+// 		b = q;
+// 	}
+// }
 
 struct Color
 {
