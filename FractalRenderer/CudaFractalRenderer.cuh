@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <cmath>
 #include "CudaVec2.cuh"
 
 
@@ -12,6 +13,7 @@ struct SFractalParams
 	u32 MultiSample;
 	u32 IterationMax;
 	cvec2d RotationVector;
+	u32 Stride;
 
 	SFractalParams()
 	{
@@ -20,6 +22,7 @@ struct SFractalParams
 		IterationMax = 1000;
 		MultiSample = 1;
 		RotationVector = cvec2d(0, 1);
+		Stride = 4;
 	}
 
 	void SetRotation(f64 const Angle)
@@ -37,7 +40,7 @@ struct SPixelState   //  48 bytes
 	u32 LastTotal;   //  4
 	bool Finished;   //  4
 	u32 FinalSum;    //  4
-	bool Calculated; //  
+	bool Calculated; //
 	u8 R, G, B;      //  4
 };
 

@@ -136,7 +136,7 @@ __device__ static void ColorFromHue(f64 Hue, u8 & r, u8 & g, u8 & b, f64 const A
 {
 	Hue = pow(Hue, Amp);
 	//ColorFromHSV(fmod(Hue * (360 + 60), 360.0), 1, 1, r, g, b);
-	Color const Colors[] = 
+	Color const Colors[] =
 	{
 		//Color(0, 0, 0),
 		//Color(24, 204, 27),
@@ -146,7 +146,7 @@ __device__ static void ColorFromHue(f64 Hue, u8 & r, u8 & g, u8 & b, f64 const A
 		Color(255, 78, 51),
 		Color(43, 96, 255),
 		Color(255, 255, 255),
-		
+
 		// Valentines
 		//Color(250, 70, 91),
 		//Color(134, 54, 173),
@@ -156,7 +156,7 @@ __device__ static void ColorFromHue(f64 Hue, u8 & r, u8 & g, u8 & b, f64 const A
 		//Color(46, 182, 255),
 		//Color(255, 255, 255),
 	};
-	
+
 	if (Hue < 0)
 		Hue = 0;
 	if (Hue > 1)
@@ -168,7 +168,7 @@ __device__ static void ColorFromHue(f64 Hue, u8 & r, u8 & g, u8 & b, f64 const A
 	int const Below = (int) floor(Hue * Size) % Count;
 	int const Above = (int) ceil(Hue * Size) % Count;
 	f64 const Part = Hue * Size - floor(Hue * Size);
-	
+
 	r = (u8) ((1 - Part) * Colors[Below].r + Part * Colors[Above].r);
 	g = (u8) ((1 - Part) * Colors[Below].g + Part * Colors[Above].g);
 	b = (u8) ((1 - Part) * Colors[Below].b + Part * Colors[Above].b);
@@ -263,8 +263,10 @@ __global__ void FinalKernel(void * Image, SPixelState * States, u32 * Histogram,
 	G /= Params.MultiSample * Params.MultiSample;
 	B /= Params.MultiSample * Params.MultiSample;
 
-	((u8 *) Image)[PixelCoordinates.Y * Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 0] = R;
-	((u8 *) Image)[PixelCoordinates.Y * Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 1] = G;
-	((u8 *) Image)[PixelCoordinates.Y * Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 2] = B;
-	((u8 *) Image)[PixelCoordinates.Y * Params.ScreenSize.X * 4 + PixelCoordinates.X * 4 + 3] = 255;
+	u32 const Stride = Params.Stride;
+	((u8 *) Image)[PixelCoordinates.Y * Params.ScreenSize.X * Stride + PixelCoordinates.X * Stride + 0] = R;
+	((u8 *) Image)[PixelCoordinates.Y * Params.ScreenSize.X * Stride + PixelCoordinates.X * Stride + 1] = G;
+	((u8 *) Image)[PixelCoordinates.Y * Params.ScreenSize.X * Stride + PixelCoordinates.X * Stride + 2] = B;
+	if (Stride > 3)
+		((u8 *) Image)[PixelCoordinates.Y * Params.ScreenSize.X * Stride + PixelCoordinates.X * Stride + 3] = 255;
 }

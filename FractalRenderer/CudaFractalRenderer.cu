@@ -97,7 +97,7 @@ void CudaFractalRenderer::Render(void * deviceBuffer)
 					ParamsCopy.ScreenSize.Y / BlockSize + (ParamsCopy.ScreenSize.Y % BlockSize ? 1 : 0));
 				dim3 const Block(BlockSize, BlockSize);
 				FinalKernel<<<Grid, Block>>>(deviceBuffer, DeviceStates, DeviceHistogram, ParamsCopy);
-				CheckCudaResults("clear");
+				CheckCudaResults("final");
 			}
 		}
 	}
