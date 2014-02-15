@@ -16,3 +16,4 @@ syntax: glob
 *.cu.cache
 Thumbs.db
 OutputImages/
+FractalMPI
