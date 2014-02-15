@@ -97,12 +97,12 @@ struct CudaVec2
 
 	__universal__ CudaVec2 Normalize() const
 	{
-		return * this / length();
+		return * this / Length();
 	}
 
 	__universal__ friend CudaVec2 Normalize(CudaVec2 const & v)
 	{
-		return v / v.length();
+		return v / v.Length();
 	}
 
 };
