@@ -1,6 +1,7 @@
 #! /bin/sh
 
 FindHosts > hosts
+sed -i '/302x33/d' hosts
 for number in 2 4 8 16 32
 do
 	cat hosts | sort -r | tail -n $number > hosts$number
