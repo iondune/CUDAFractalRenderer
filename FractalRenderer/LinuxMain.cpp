@@ -100,9 +100,7 @@ protected:
 		ScreenSizeX = 1600, ScreenSizeY = 900;
 		MultiSample = 4;
 		OutputDirectory = ".";
-		CurrentFrame = 0;
 		FrameCount = 40;
-		LastRotation = 0;
 
 		MPI_Init(& argc, & argv);
 
@@ -116,13 +114,17 @@ protected:
 		GetUintArgument(argv, argv+argc, "-h", & ScreenSizeY);
 		GetUintArgument(argv, argv+argc, "-m", & MultiSample);
 		GetStringArgument(argv, argv+argc, "-d", & OutputDirectory);
+		GetUintArgument(argv, argv+argc, "-c", & FrameCount);
 
 		if (! ProcessorId)
 		{
-			printf("Doing %dx%d render at %d MS\n", ScreenSizeX, ScreenSizeY, MultiSample);
+			printf("Doing %dx%d render with %d MS\n", ScreenSizeX, ScreenSizeY, MultiSample);
+			printf("%d frames.\n", FrameCount);
 			printf("Writing images to '%s/'\n", OutputDirectory.c_str());
 			printf("\n");
 		}
+
+		MPI_Barrier(MPI_COMM_WORLD);
 
 		Renderer.Params.Stride = 3;
 		Renderer.Params.MultiSample = MultiSample;
@@ -173,9 +175,7 @@ protected:
 	u32 ScreenSizeX, ScreenSizeY;
 	u32 MultiSample;
 	u32 FrameCount;
-	u32 CurrentFrame;
 	std::string OutputDirectory;
-	f64 LastRotation;
 
 	int ProcessorId, ProcessorCount;
 
