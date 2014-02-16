@@ -129,7 +129,7 @@ protected:
 			printf("Writing images to '%s/'\n", OutputDirectory.c_str());
 			printf("Rendering at %.15f, %.15f\n", Renderer.Params.Center.X, Renderer.Params.Center.Y);
 			printf("Rendering scale is %.7f\n", Renderer.Params.Scale.Y);
-			printf("Iteration incrememnt is %d\b", IterationIncrement);
+			printf("Iteration incrememnt is %d\n", IterationIncrement);
 			printf("\n");
 		}
 
@@ -173,6 +173,8 @@ protected:
 	void Cleanup()
 	{
 		CheckedCudaCall(cudaFree(DeviceBuffer), "Free");
+
+		printf("Finished on system %d\n", ProcessorId);
 		MPI_Finalize();
 	}
 
