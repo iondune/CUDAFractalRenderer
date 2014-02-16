@@ -115,12 +115,21 @@ protected:
 		GetUintArgument(argv, argv+argc, "-m", & MultiSample);
 		GetStringArgument(argv, argv+argc, "-d", & OutputDirectory);
 		GetUintArgument(argv, argv+argc, "-c", & FrameCount);
+		GetDoubleArgument(argv, argv+argc, "-x", & Renderer.Params.Center.X);
+		GetDoubleArgument(argv, argv+argc, "-y", & Renderer.Params.Center.Y);
+		GetDoubleArgument(argv, argv+argc, "-z", & Renderer.Params.Scale.Y);
+		GetUintArgument(argv, argv+argc, "-l", & Renderer.Params.IterationMax);
+		GetUintArgument(argv, argv+argc, "-i", & IterationIncrement);
+		Renderer.Params.Scale.X = Renderer.Params.Scale.Y;
 
 		if (! ProcessorId)
 		{
 			printf("Doing %dx%d render with %d MS\n", ScreenSizeX, ScreenSizeY, MultiSample);
 			printf("%d frames.\n", FrameCount);
 			printf("Writing images to '%s/'\n", OutputDirectory.c_str());
+			printf("Rendering at %.15f, %.15f\n", Renderer.Params.Center.X, Renderer.Params.Center.Y);
+			printf("Rendering scale is %.7f\n", Renderer.Params.Scale.Y);
+			printf("Iteration incrememnt is %d\b", IterationIncrement);
 			printf("\n");
 		}
 
@@ -129,6 +138,7 @@ protected:
 		Renderer.Params.Stride = 3;
 		Renderer.Params.MultiSample = MultiSample;
 		Renderer.Init(cvec2u(ScreenSizeX, ScreenSizeY));
+		Renderer.IterationIncrement = IterationIncrement;
 
 		BufferSize = ScreenSizeX * ScreenSizeY * sizeof(u8) * 3;
 	}
@@ -175,6 +185,7 @@ protected:
 	u32 ScreenSizeX, ScreenSizeY;
 	u32 MultiSample;
 	u32 FrameCount;
+	u32 IterationIncrement;
 	std::string OutputDirectory;
 
 	int ProcessorId, ProcessorCount;
