@@ -1,0 +1,7 @@
+#! /bin/sh
+
+for host in `cat hosts32` ; do
+	ssh $host 'mkdir -p /tmp/fractal'
+	ssh $host 'rm -f /tmp/fractal/*'
+	echo "$host is ready"
+done
