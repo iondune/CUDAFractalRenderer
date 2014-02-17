@@ -2,6 +2,9 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
+#include <vector>
+#include <iostream>
+#include <fstream>
 #include <ionCore/ionTypes.h>
 #include <mpi.h>
 
@@ -73,8 +76,12 @@ public:
 	{
 		Init(argc, argv);
 		SetupBuffer();
-		for (uint i = ProcessorId; i < FrameCount; i += ProcessorCount)
-			DrawFrame(i);
+		if (Pickups.size())
+			for (uint i = ProcessorId; i < Pickups.size(); i += ProcessorCount)
+				DrawFrame(Pickups[i]);
+		else
+			for (uint i = ProcessorId; i < FrameCount; i += ProcessorCount)
+				DrawFrame(i);
 		Cleanup();
 	}
 
@@ -115,6 +122,8 @@ protected:
 		if (! ProcessorId)
 			printf("There are %d processors.\n", ProcessorCount);
 
+		std::string PickupsFile;
+
 		GetUintArgument(argv, argv+argc, "-w", & ScreenSizeX);
 		GetUintArgument(argv, argv+argc, "-h", & ScreenSizeY);
 		GetUintArgument(argv, argv+argc, "-m", & MultiSample);
@@ -125,7 +134,14 @@ protected:
 		GetDoubleArgument(argv, argv+argc, "-z", & Renderer.Params.Scale.Y);
 		GetUintArgument(argv, argv+argc, "-l", & Renderer.Params.IterationMax);
 		GetUintArgument(argv, argv+argc, "-i", & IterationIncrement);
+		GetStringArgument(argv, argv+argc, "-pickups", & PickupsFile);
 		Renderer.Params.Scale.X = Renderer.Params.Scale.Y;
+
+		std::ifstream File(PickupsFile.c_str());
+		float Value;
+		while (File >> Value)
+			Pickups.push_back(Value);
+
 
 		if (! ProcessorId)
 		{
@@ -136,6 +152,8 @@ protected:
 			printf("Rendering scale is %.7f\n", Renderer.Params.Scale.Y);
 			printf("Iteration incrememnt is %d\n", IterationIncrement);
 			printf("\n");
+			if (Pickups.size())
+				printf("Doing pickups\n\n");
 		}
 
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -187,15 +205,16 @@ protected:
 	CudaFractalRenderer Renderer;
 
 	void * DeviceBuffer;
-	u32 BufferSize;
+	uint BufferSize;
 
-	u32 ScreenSizeX, ScreenSizeY;
-	u32 MultiSample;
-	u32 FrameCount;
-	u32 IterationIncrement;
+	uint ScreenSizeX, ScreenSizeY;
+	uint MultiSample;
+	uint FrameCount;
+	uint IterationIncrement;
 	std::string OutputDirectory;
 
-	u32 LastFrameRendered;
+	uint LastFrameRendered;
+	std::vector<uint> Pickups;
 
 	int ProcessorId, ProcessorCount;
 
