@@ -73,30 +73,35 @@ public:
 	{
 		Init(argc, argv);
 		SetupBuffer();
-		int LastZoom = 0;
-		for (int i = ProcessorId; i < FrameCount; i += ProcessorCount)
-		{
-			static f64 const ZoomSpeed = 0.995;
-			static f64 const RotateSpeed = 0.001;
-
-			printf("Rendering frame %d of %d on system %d\n", i+1, FrameCount, ProcessorId);
-			for (int j = LastZoom; j < i; ++ j)
-			{
-				Renderer.Params.Scale.X *= ZoomSpeed;
-				Renderer.Params.Scale.Y *= ZoomSpeed;
-			}
-			LastZoom = i;
-			Renderer.Params.SetRotation(RotateSpeed * i);
-			Renderer.Reset();
-			DoRender(i);
-		}
+		for (uint i = ProcessorId; i < FrameCount; i += ProcessorCount)
+			DrawFrame(i);
 		Cleanup();
 	}
 
 protected:
 
+	void DrawFrame(uint Frame)
+	{
+		static f64 const ZoomSpeed = 0.995;
+		static f64 const RotateSpeed = 0.001;
+
+		printf("Rendering frame %d of %d (index %d) on system %d\n", Frame+1, FrameCount, Frame, ProcessorId);
+		for (int j = LastFrameRendered; j < Frame; ++ j)
+		{
+			Renderer.Params.Scale.X *= ZoomSpeed;
+			Renderer.Params.Scale.Y *= ZoomSpeed;
+		}
+		Renderer.Params.SetRotation(RotateSpeed * Frame);
+		Renderer.Reset();
+		DoRender(Frame);
+
+		LastFrameRendered = Frame;
+	}
+
 	void Init(int argc, char ** argv)
 	{
+		LastFrameRendered = 0;
+
 		ScreenSizeX = 1600, ScreenSizeY = 900;
 		MultiSample = 4;
 		OutputDirectory = ".";
@@ -189,6 +194,8 @@ protected:
 	u32 FrameCount;
 	u32 IterationIncrement;
 	std::string OutputDirectory;
+
+	u32 LastFrameRendered;
 
 	int ProcessorId, ProcessorCount;
 
