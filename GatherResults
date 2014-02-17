@@ -2,5 +2,5 @@
 
 for host in `cat hosts32` ; do
 	scp $host:/tmp/fractal/\* unix14:/tmp/fractal/
-	ssh $host 'rm -f /tmp/fractal/*'
+	# ssh $host 'rm -f /tmp/fractal/*'
 done
