@@ -19,6 +19,7 @@ void CMainState::Run()
 	WindowManager->Init(GraphicsAPI);
 	TimeManager->Init(WindowManager);
 
+	LoadSettings();
 	Window = WindowManager->CreateWindow(ApplicationSettings.WindowSize, "Fractal Renderer", ApplicationSettings.WindowType);
 	Window->SetPosition(ApplicationSettings.WindowPosition);
 
@@ -109,10 +110,11 @@ void CMainState::Update(f32 const Elapsed)
 
 	if (DumpFrames)
 	{
-		DumpFrameToFile();
-
 		if (IsRenderReady())
+		{
+			DumpFrameToFile();
 			DumpFrames = false;
+		}
 	}
 	else if (RenderZoom)
 	{

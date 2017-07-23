@@ -52,7 +52,7 @@ void CMainState::OnEvent(IEvent & Event)
 			case EKey::BackSlash:
 
 				DumpFrames = true;
-				FractalRenderer.Reset();
+				//FractalRenderer.Reset();
 				break;
 
 			case EKey::Slash:
