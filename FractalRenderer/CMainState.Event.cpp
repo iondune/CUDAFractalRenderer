@@ -89,6 +89,18 @@ void CMainState::OnEvent(IEvent & Event)
 				FractalRenderer.Reset();
 				break;
 
+			case EKey::C:
+
+				FractalRenderer.Params.SetRotation(FractalRenderer.Params.Angle + 0.1);
+				FractalRenderer.Reset();
+				break;
+
+			case EKey::V:
+
+				FractalRenderer.Params.SetRotation(FractalRenderer.Params.Angle - 0.1);
+				FractalRenderer.Reset();
+				break;
+
 			case EKey::Q:
 
 				FractalRenderer.Params.Scale.X *= 0.75;

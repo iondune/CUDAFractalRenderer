@@ -14,6 +14,7 @@ struct SFractalParams
 	u32 IterationMax;
 	cvec2d RotationVector;
 	u32 Stride;
+	f64 Angle;
 
 	SFractalParams()
 	{
@@ -25,8 +26,9 @@ struct SFractalParams
 		Stride = 4;
 	}
 
-	void SetRotation(f64 const Angle)
+	void SetRotation(f64 const angle)
 	{
+		Angle = angle;
 		RotationVector = cvec2d(sin(Angle), cos(Angle));
 	}
 };
