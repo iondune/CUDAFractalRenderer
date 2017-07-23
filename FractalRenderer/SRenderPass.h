@@ -9,12 +9,11 @@ class SRenderPass
 
 public:
 
-	SRenderPass();
+	SRenderPass(SharedPointer<ion::Graphics::IGraphicsContext> Graphics);
 
-	CShader * Shader;
+	SharedPointer<ion::Graphics::IShaderProgram> Shader;
 
 	std::map<std::string, float> Floats;
-	std::map<std::string, double> Doubles;
 	std::map<std::string, int> Ints;
 	std::map<std::string, vec3f> Vector3s;
 	std::map<std::string, u32> Textures;
@@ -26,7 +25,9 @@ public:
 
 	bool SetTarget;
 
-	CShaderContext * Context;
-	static GLuint QuadHandle;
+	SharedPointer<ion::Graphics::IPipelineState> Context;
+	SharedPointer<ion::Graphics::IGraphicsContext> Graphics;
+
+	SingletonPointer<ion::CGraphicsAPI> GraphicsAPI;
 
 };

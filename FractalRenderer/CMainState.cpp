@@ -3,24 +3,73 @@
 #include "SRenderPass.h"
 #include "CudaVec2.cuh"
 #include <cuda_gl_interop.h>
-
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
+#include <ionGraphicsGL/Utilities.h>
+
+using namespace ion;
 
 
 CMainState::CMainState()
 	: CurrentColor(0), DumpFrames(false), CurrentDumpFrame(0), RenderZoom(false), LastRotation(0), ShowText(true), Resource(0)
 {}
 
+void CMainState::Run()
+{
+	GraphicsAPI->Init(new Graphics::COpenGLImplementation());
+	WindowManager->Init(GraphicsAPI);
+	TimeManager->Init(WindowManager);
+
+	Window = WindowManager->CreateWindow(ApplicationSettings.WindowSize, "Fractal Renderer", ApplicationSettings.WindowType);
+	Window->SetPosition(ApplicationSettings.WindowPosition);
+
+	SingletonPointer<CGamePad> GamePad;
+	GamePad->AddListener(this);
+
+	GraphicsContext = Window->GetContext();
+	BackBuffer = GraphicsContext->GetBackBuffer();
+	BackBuffer->SetClearColor(color4i(128, 128, 128, 255));
+
+	GUIManager->Init(Window);
+	GUIManager->AddFontFromFile("Assets/Fonts/OpenSans.ttf", 20.f);
+	Window->AddListener(GUIManager);
+	GUIManager->AddListener(this);
+
+	SceneManager->Init(GraphicsAPI);
+
+	AssetManager->Init(GraphicsAPI);
+	AssetManager->AddAssetPath(".");
+	AssetManager->SetShaderPath("Shaders");
+	AssetManager->SetTexturePath("Media");
+	AssetManager->SetMeshPath("Media");
+
+	Begin();
+
+
+	TimeManager->Start();
+	while (WindowManager->Run())
+	{
+		TimeManager->Update();
+
+		GUIManager->NewFrame();
+
+		BackBuffer->ClearColorAndDepth();
+
+		Update((float) TimeManager->GetElapsedTime());
+
+		GUIManager->Draw();
+		Window->SwapBuffers();
+	}
+}
+
 void CMainState::Begin()
 {
-	Font.init("Media/OpenSans.ttf", 16);
+	//Font.init("Media/OpenSans.ttf", 16);
 	glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
-	vec2i const ScreenSize = Application->GetWindow().GetSize();
+	vec2i const ScreenSize = Window->GetSize();
 
 	// Texture and shader for draw operations
-	Finalize = CShaderLoader::loadShader("QuadCopyUV.glsl", "Finalize.frag");
-	CopyTexture = new CTexture(ScreenSize, false);
+	Finalize = AssetManager->LoadShader("Finalize");
+	CopyTexture = GraphicsAPI->CreateTexture2D(ScreenSize, Graphics::ITexture::EMipMaps::False, Graphics::ITexture::EFormatComponents::RGBA, Graphics::ITexture::EInternalFormatType::Fix8);
 
 	int Count;
 	cudaGetDeviceCount(& Count);
@@ -35,14 +84,14 @@ void CMainState::Begin()
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
 	// Texture for screen copy
-	glEnable(GL_TEXTURE_2D);
-	glGenTextures(1, & ScreenTextureHandle);
-	glBindTexture(GL_TEXTURE_2D, ScreenTextureHandle);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ScreenSize.X, ScreenSize.Y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//CheckedGLCall(glEnable(GL_TEXTURE_2D));
+	CheckedGLCall(glGenTextures(1, & ScreenTextureHandle));
+	CheckedGLCall(glBindTexture(GL_TEXTURE_2D, ScreenTextureHandle));
+	CheckedGLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ScreenSize.X, ScreenSize.Y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+	CheckedGLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	CheckedGLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
-	FractalRenderer.Init(cvec2u(Application->GetWindow().GetSize().X, Application->GetWindow().GetSize().Y));
+	FractalRenderer.Init(cvec2u(Window->GetSize().X, Window->GetSize().Y));
 }
 
 bool CMainState::IsRenderReady() const
@@ -52,7 +101,7 @@ bool CMainState::IsRenderReady() const
 
 void CMainState::Update(f32 const Elapsed)
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	CheckedGLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 	FrameRateCounter.Update(Elapsed);
 
 	DoRender();
@@ -82,7 +131,6 @@ void CMainState::Update(f32 const Elapsed)
 	}
 
 	PrintTextOverlay();
-	Application->GetWindow().SwapBuffers();
 }
 
 void CMainState::DoRender()
@@ -106,21 +154,21 @@ void CMainState::LoadTextureData()
 {
 	BindTexture();
 
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, CudaDrawBufferHandle);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FractalRenderer.Params.ScreenSize.X, FractalRenderer.Params.ScreenSize.Y, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+	CheckedGLCall(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, CudaDrawBufferHandle));
+	CheckedGLCall(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, FractalRenderer.Params.ScreenSize.X, FractalRenderer.Params.ScreenSize.Y, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+	CheckedGLCall(glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0));
 }
 
 void CMainState::BindTexture()
 {
-	glEnable(GL_TEXTURE_2D);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, ScreenTextureHandle);
+	//CheckedGLCall(glEnable(GL_TEXTURE_2D));
+	CheckedGLCall(glActiveTexture(GL_TEXTURE0));
+	CheckedGLCall(glBindTexture(GL_TEXTURE_2D, ScreenTextureHandle));
 }
 
 void CMainState::DoTextureDraw()
 {
-	SRenderPass Pass;
+	SRenderPass Pass(Window->GetContext());
 	Pass.Shader = Finalize;
 	if (Pass.Shader)
 	{
@@ -131,11 +179,11 @@ void CMainState::DoTextureDraw()
 
 void CMainState::DumpFrameToFile()
 {
-	u32 const FrameWidth = Application->GetWindow().GetSize().X;
-	u32 const FrameHeight = Application->GetWindow().GetSize().Y;
+	u32 const FrameWidth = Window->GetSize().X;
+	u32 const FrameHeight = Window->GetSize().Y;
 
 	unsigned char * ImageData = new unsigned char[FrameWidth * FrameHeight * 3];
-	glReadPixels(0, 0, FrameWidth, FrameHeight, GL_RGB, GL_UNSIGNED_BYTE, ImageData);
+	CheckedGLCall(glReadPixels(0, 0, FrameWidth, FrameHeight, GL_RGB, GL_UNSIGNED_BYTE, ImageData));
 
 	std::stringstream FileName;
 	FileName << "OutputImages/";
@@ -151,9 +199,9 @@ void CMainState::PrintTextOverlay()
 	if (! ShowText)
 		return;
 
-	freetype::print(Font, 10, 10, "FPS: %.3f", FrameRateCounter.GetAverage());
-	freetype::print(Font, 10, 40, "Max: %d of %d", FractalRenderer.GetIterationMax(), FractalRenderer.Params.IterationMax);
-	freetype::print(Font, 10, 70, "Increment: %d", FractalRenderer.IterationIncrement);
+	//freetype::print(Font, 10, 10, "FPS: %.3f", FrameRateCounter.GetAverage());
+	//freetype::print(Font, 10, 40, "Max: %d of %d", FractalRenderer.GetIterationMax(), FractalRenderer.Params.IterationMax);
+	//freetype::print(Font, 10, 70, "Increment: %d", FractalRenderer.IterationIncrement);
 }
 
 void CMainState::PrintLocation()

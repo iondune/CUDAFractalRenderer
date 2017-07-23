@@ -1,6 +1,8 @@
 
 #include "CMainState.h"
 
+using namespace ion;
+
 
 void CMainState::OnEvent(SKeyboardEvent & Event)
 {
@@ -12,7 +14,7 @@ void CMainState::OnEvent(SKeyboardEvent & Event)
 
 		case EKey::Escape:
 
-			Application->Close();
+			Window->Close();
 			break;
 
 		case EKey::W:

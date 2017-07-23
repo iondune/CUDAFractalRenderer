@@ -1,25 +1,44 @@
 
 #include "SRenderPass.h"
+#include <ionGraphicsGL/Utilities.h>
+
+using namespace ion;
+using namespace ion::Graphics;
 
 
-GLuint SRenderPass::QuadHandle = 0;
+SharedPointer<ion::Graphics::IVertexBuffer> VertexBuffer;
+SharedPointer<ion::Graphics::IIndexBuffer> IndexBuffer;
 
-SRenderPass::SRenderPass()
+SRenderPass::SRenderPass(SharedPointer<ion::Graphics::IGraphicsContext> Graphics)
 	: Shader(0), Context(0)
 {
-	if (! QuadHandle)
+	this->Graphics = Graphics;
+
+	if (! VertexBuffer)
 	{
-		GLfloat QuadVertices[] =
+		vector<GLfloat> QuadVertices =
 		{
 			-1.0, -1.0,
 			 1.0, -1.0,
 			 1.0,  1.0,
-			-1.0,  1.0
+			-1.0,  1.0,
 		};
 
-		glGenBuffers(1, & QuadHandle);
-		glBindBuffer(GL_ARRAY_BUFFER, QuadHandle);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(QuadVertices), QuadVertices, GL_STATIC_DRAW);
+		vector<uint> QuadIndices =
+		{
+			0, 1, 2,
+			0, 2, 3
+		};
+
+		Graphics::SInputLayoutElement InputLayout[] =
+		{
+			{ "aPosition", 2, Graphics::EAttributeType::Float },
+		};
+		VertexBuffer = GraphicsAPI->CreateVertexBuffer();
+		VertexBuffer->SetInputLayout(InputLayout, ION_ARRAYSIZE(InputLayout));
+		VertexBuffer->UploadData(QuadVertices);
+		IndexBuffer = GraphicsAPI->CreateIndexBuffer();
+		IndexBuffer->UploadData(QuadIndices);
 	}
 }
 
@@ -28,10 +47,10 @@ void SRenderPass::Begin()
 	if (! Shader)
 		return;
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glDisable(GL_DEPTH_TEST);
+	CheckedGLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-	Context = new CShaderContext(* Shader);
+	Context = Graphics->CreatePipelineState();
+	Context->SetProgram(Shader);
 }
 
 void SRenderPass::End()
@@ -42,31 +61,34 @@ void SRenderPass::End()
 	if (! Context)
 		return;
 
-	for (std::map<std::string, u32>::iterator it = Textures.begin(); it != Textures.end(); ++ it)
-		Context->bindTexture(it->first, it->second);
-
 	for (std::map<std::string, float>::iterator it = Floats.begin(); it != Floats.end(); ++ it)
-		Context->uniform(it->first, it->second);
-
-	for (std::map<std::string, double>::iterator it = Doubles.begin(); it != Doubles.end(); ++ it)
-		Context->uniform<f64>(it->first, it->second);
+		Context->SetUniform(it->first, CUniform<float>(it->second));
 
 	for (std::map<std::string, int>::iterator it = Ints.begin(); it != Ints.end(); ++ it)
-		Context->uniform(it->first, it->second);
+		Context->SetUniform(it->first, CUniform<int>(it->second));
 
 	for (std::map<std::string, vec3f>::iterator it = Vector3s.begin(); it != Vector3s.end(); ++ it)
-		Context->uniform(it->first, it->second);
+		Context->SetUniform(it->first, CUniform<vec3f>(it->second));
 
-	Context->bindBufferObject("aPosition", QuadHandle, 2);
+	Context->SetVertexBuffer(0, VertexBuffer);
+	Context->SetIndexBuffer(IndexBuffer);
 
-	glDrawArrays(GL_QUADS, 0, 4);
+	int i = 0;
+	for (auto it = Textures.begin(); it != Textures.end(); ++ it)
+	{
+		CheckedGLCall(glActiveTexture(GL_TEXTURE0 + i));
+		CheckedGLCall(glBindTexture(GL_TEXTURE_2D, it->second));
+		Context->SetUniform(it->first, CUniform<int>(i));
+
+		i++;
+	}
+
+	Context->SetFeatureEnabled(EDrawFeature::DisableDepthTest, true);
+
+	Graphics->Draw(Context);
 
 	if (SetTarget)
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glEnable(GL_DEPTH_TEST);
-
-	delete Context;
+		CheckedGLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
 void SRenderPass::DoPass()

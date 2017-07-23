@@ -6,18 +6,20 @@
 #include "CFrameRateCounter.h"
 
 
-class CMainState : public CContextState<CMainState>
+class CMainState : public Singleton<CMainState>, public ion::CDefaultApplication
 {
 
 public:
 
 	CMainState();
 
+	void Run();
+
 	void Begin();
 	void Update(f32 const Elapsed);
 
-	void OnEvent(SKeyboardEvent & Event);
-	void OnEvent(SMouseEvent & Event);
+	void OnEvent(ion::SKeyboardEvent & Event);
+	void OnEvent(ion::SMouseEvent & Event);
 
 protected:
 
@@ -42,17 +44,30 @@ protected:
 	int CurrentDumpFrame;
 
 	CFrameRateCounter FrameRateCounter;
-	freetype::font_data Font;
 
 	u32 CudaDrawBufferHandle, ScreenTextureHandle;
 	cudaGraphicsResource * Resource;
-	CShader * Finalize;
-	CTexture * CopyTexture;
+	SharedPointer<ion::Graphics::IShaderProgram> Finalize;
+	SharedPointer<ion::Graphics::ITexture2D> CopyTexture;
 
-	std::vector<CImage *> ColorMaps;
+	std::vector<ion::CImage *> ColorMaps;
 	int CurrentColor;
 	int Multisample;
 
 	bool ShowText;
+
+private:
+
+	SingletonPointer<ion::CWindowManager> WindowManager;
+	SingletonPointer<ion::CTimeManager> TimeManager;
+	SingletonPointer<ion::CAssetManager> AssetManager;
+	SingletonPointer<ion::CSceneManager> SceneManager;
+	SingletonPointer<ion::CGUIManager> GUIManager;
+
+	SingletonPointer<ion::CGraphicsAPI> GraphicsAPI;
+	SharedPointer<ion::Graphics::IGraphicsContext> GraphicsContext;
+
+	ion::CWindow * Window = nullptr;
+	SharedPointer<ion::Graphics::IRenderTarget> BackBuffer;
 
 };
