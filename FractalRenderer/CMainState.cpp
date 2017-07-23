@@ -65,11 +65,11 @@ void CMainState::Begin()
 {
 	//Font.init("Media/OpenSans.ttf", 16);
 	glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
-	vec2i const ScreenSize = Window->GetSize();
+	RenderSize = Window->GetSize();
 
 	// Texture and shader for draw operations
 	Finalize = AssetManager->LoadShader("Finalize");
-	CopyTexture = GraphicsAPI->CreateTexture2D(ScreenSize, Graphics::ITexture::EMipMaps::False, Graphics::ITexture::EFormatComponents::RGBA, Graphics::ITexture::EInternalFormatType::Fix8);
+	CopyTexture = GraphicsAPI->CreateTexture2D(RenderSize, Graphics::ITexture::EMipMaps::False, Graphics::ITexture::EFormatComponents::RGBA, Graphics::ITexture::EInternalFormatType::Fix8);
 
 	int Count;
 	cudaGetDeviceCount(& Count);
@@ -79,7 +79,7 @@ void CMainState::Begin()
 	// Pixel Unpack Buffer for CUDA draw operations
 	glGenBuffers(1, & CudaDrawBufferHandle);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, CudaDrawBufferHandle);
-	glBufferData(GL_PIXEL_UNPACK_BUFFER, ScreenSize.X * ScreenSize.Y * 4, NULL, GL_DYNAMIC_COPY);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, RenderSize.X * RenderSize.Y * 4, NULL, GL_DYNAMIC_COPY);
 	CheckedCudaCall(cudaGraphicsGLRegisterBuffer(& Resource, CudaDrawBufferHandle, cudaGraphicsRegisterFlagsWriteDiscard), "RegisterBuffer");
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
@@ -87,11 +87,11 @@ void CMainState::Begin()
 	//CheckedGLCall(glEnable(GL_TEXTURE_2D));
 	CheckedGLCall(glGenTextures(1, & ScreenTextureHandle));
 	CheckedGLCall(glBindTexture(GL_TEXTURE_2D, ScreenTextureHandle));
-	CheckedGLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ScreenSize.X, ScreenSize.Y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+	CheckedGLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, RenderSize.X, RenderSize.Y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL));
 	CheckedGLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	CheckedGLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
-	FractalRenderer.Init(cvec2u(Window->GetSize().X, Window->GetSize().Y));
+	FractalRenderer.Init(cvec2u(RenderSize.X, RenderSize.Y));
 }
 
 bool CMainState::IsRenderReady() const
@@ -179,8 +179,8 @@ void CMainState::DoTextureDraw()
 
 void CMainState::DumpFrameToFile()
 {
-	u32 const FrameWidth = Window->GetSize().X;
-	u32 const FrameHeight = Window->GetSize().Y;
+	u32 const FrameWidth = RenderSize.X;
+	u32 const FrameHeight = RenderSize.Y;
 
 	unsigned char * ImageData = new unsigned char[FrameWidth * FrameHeight * 3];
 	CheckedGLCall(glReadPixels(0, 0, FrameWidth, FrameHeight, GL_RGB, GL_UNSIGNED_BYTE, ImageData));
@@ -199,9 +199,14 @@ void CMainState::PrintTextOverlay()
 	if (! ShowText)
 		return;
 
-	//freetype::print(Font, 10, 10, "FPS: %.3f", FrameRateCounter.GetAverage());
-	//freetype::print(Font, 10, 40, "Max: %d of %d", FractalRenderer.GetIterationMax(), FractalRenderer.Params.IterationMax);
-	//freetype::print(Font, 10, 70, "Increment: %d", FractalRenderer.IterationIncrement);
+	ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiSetCond_Once);
+	if (ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("FPS: %.3f", FrameRateCounter.GetAverage());
+		ImGui::Text("Max: %d of %d", FractalRenderer.GetIterationMax(), FractalRenderer.Params.IterationMax);
+		ImGui::Text("Increment: %d", FractalRenderer.IterationIncrement);
+	}
+	ImGui::End();
 }
 
 void CMainState::PrintLocation()

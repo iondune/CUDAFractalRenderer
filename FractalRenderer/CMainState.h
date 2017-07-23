@@ -56,6 +56,8 @@ protected:
 
 	bool ShowText;
 
+	vec2i RenderSize;
+
 private:
 
 	SingletonPointer<ion::CWindowManager> WindowManager;
