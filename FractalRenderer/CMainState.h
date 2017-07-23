@@ -18,8 +18,7 @@ public:
 	void Begin();
 	void Update(f32 const Elapsed);
 
-	void OnEvent(ion::SKeyboardEvent & Event);
-	void OnEvent(ion::SMouseEvent & Event);
+	void OnEvent(IEvent & Event);
 
 protected:
 
