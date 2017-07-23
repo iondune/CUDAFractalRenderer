@@ -23,7 +23,7 @@ void CudaFractalRenderer::FullReset()
 	u32 const ScreenCount = Params.ScreenSize.X * Params.ScreenSize.Y * Params.MultiSample * Params.MultiSample;
 	u32 const StateCount = ScreenCount * sizeof(SPixelState);
 
-	IterationIncrement = 100;
+	IterationIncrement = 400;
 
 	if (DeviceStates)
 		cudaFree(DeviceStates);

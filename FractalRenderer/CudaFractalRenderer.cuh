@@ -18,9 +18,9 @@ struct SFractalParams
 
 	SFractalParams()
 	{
-		Scale = cvec2d(1, 1);
-		Center = cvec2d(0, 0.7);
-		IterationMax = 1000;
+		Scale = cvec2d(0.0000023, 0.0000023);
+		Center = cvec2d(-0.021201023968658, 0.710450082430672);
+		IterationMax = 4000;
 		MultiSample = 1;
 		RotationVector = cvec2d(0, 1);
 		Stride = 4;

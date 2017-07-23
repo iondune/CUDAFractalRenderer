@@ -132,20 +132,53 @@ struct Color
 	{}
 };
 
+__device__ Color Hex(uint const Value)
+{
+	u8 r = (Value >> 16) & 0xFF;
+	u8 g = (Value >> 8) & 0xFF;
+	u8 b = Value & 0xFF;
+	return Color(r, g, b);
+}
+
 __device__ static void ColorFromHue(f64 Hue, u8 & r, u8 & g, u8 & b, f64 const Amp)
 {
 	Hue = pow(Hue, Amp);
 	//ColorFromHSV(fmod(Hue * (360 + 60), 360.0), 1, 1, r, g, b);
 	Color const Colors[] =
 	{
-		//Color(0, 0, 0),
-		//Color(24, 204, 27),
-		//Color(255, 255, 255),
+		//Hex(0x446144),
+		//Hex(0x18CC1B),
+		//Hex(0x9BE09C),
+
+		// Yellow/Teal
+		////Hex(0xED4CA2),
+		//Hex(0xEDE74C),
+		////Hex(0x9BBDE0),
+		//Hex(0x4CED97),
+		//Hex(0x4C52ED),
+		//Hex(0xffffff),
+
+		// Pastel
+		//Hex(0x9BE09C),
+		//Hex(0xE09BDF),
+		//Hex(0xE0BF9B),
+		//Hex(0x9BBDE0),
+		//Hex(0xffffff),
 
 		// Red/Blue
-		Color(255, 78, 51),
-		Color(43, 96, 255),
-		Color(255, 255, 255),
+		//Hex(0xFF4E33),
+		//Hex(0x2A60FF),
+		//Color(255, 255, 255),
+
+		// Blue/Green/White
+		Hex(0xFFFFFF),
+		Hex(0x4769FF),
+		Hex(0x47FF81),
+
+		//// Blue/Green/Dark
+		//Hex(0x00A835),
+		//Hex(0x3A5BF0),
+		//Hex(0xFFFFFF),
 
 		// Valentines
 		//Color(250, 70, 91),
